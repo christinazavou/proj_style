@@ -25,3 +25,8 @@ if i want to run everything for "demo":
 - .\show_style.sh
   ```start "" "..\..\Back_projected\back_projection.exe" "..\..\Back_projected\params_demo.cfg"```
   `
+
+
+trimesh:
+sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
+cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
