@@ -30,3 +30,33 @@ if i want to run everything for "demo":
 trimesh:
 sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
 cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
+
+
+opencv248:
+sudo apt-get install libtiff5-dev
+sudo apt-get install gtk2.0
+## sudo apt-get install libv4l-dev
+
+
+mpainoun sto /usr/include
+
+
+dont run tests: -DBUILD_opencv_ts=0
+dont enable cuda support: -D WITH_CUDA=OFF
+
+==> ok with sudo cmake -DBUILD_opencv_ts=0 -D WITH_CUDA=OFF . && make
+
+
+sudo cmake -DBUILD_opencv_ts=0 -D WITH_CUDA=OFF -DCMAKE_BUILD_TYPE=Release -DOPENCV_GENERATE_PKGCONFIG=YES -DCMAKE_INSTALL_PREFIX=/media/graphicslab/zavou/dev_libraries/opencv/opencv-2.4.8  /media/graphicslab/zavou/dev_libraries/opencv/opencv-2.4.8
+cd /media/graphicslab/zavou/dev_libraries/opencv/latest/release
+sudo make
+sudo make install
+sudo ldconfig
+sudo touch /etc/profile.d/opencv.sh
+with:
+	#!/bin/sh
+	export PATH=//media/graphicslab/zavou/dev_libraries/opencv/latest/bin:/media/graphicslab/zavou/dev_libraries/opencv/latest/release/bin:${PATH}
+	export LD_LIBRARY_PATH=/media/graphicslab/zavou/dev_libraries/opencvlatest/release/lib:$LD_LIBRARY_PATH
+	export PKG_CONFIG_PATH=/media/graphicslab/zavou/dev_libraries/opencv/latest/lib/pkgconfig
+sudo chmod +x /etc/profile.d/opencv.sh
+source /etc/profile.d/opencv.sh
