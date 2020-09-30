@@ -72,4 +72,33 @@ sudo apt update
 sudo apt install libjasper1 libjasper-dev
 
 
+opencv3.3.1:
+sudo apt-get install qt5-default libgtk2.0-dev libtbb-dev
+sudo apt-get install python3-pip
+sudo pip3 install -U pip numpy
+git clone https://github.com/opencv/opencv.git
+cd opencv && git checkout 3.3.1 && cd ..
+git clone https://github.com/opencv/opencv_contrib.git
+cd opencv_contrib && git checkout 3.3.1 && cd ..
+cd opencv && mkdir build && cd build
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+      -D CMAKE_INSTALL_PREFIX=/usr/local \
+      -D INSTALL_C_EXAMPLES=ON \
+      -D INSTALL_PYTHON_EXAMPLES=OFF \
+      -D BUILD_opencv_world=OFF \
+      -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+      -D BUILD_EXAMPLES=ON \
+      -D WITH_CUDA=OFF \
+      -D BUILD_opencv_java=OFF \
+	  -D BUILD_opencv_python=OFF \
+	  -D BUILD_opencv_python3=OFF \
+	  -D PYTHON_DEFAULT_EXECUTABLE=/usr/bin/python3.8 ..
+make -j4
+sudo make install
+sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf.d/opencv.conf'
+sudo ldconfig
+
+check:
+pkg-config --modversion opencv
+pkg-config --cflags opencv
 
