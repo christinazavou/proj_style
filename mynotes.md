@@ -103,3 +103,8 @@ check:
 pkg-config --modversion opencv
 pkg-config --cflags opencv
 
+
+to use glut:
+sudo apt-get install freeglut3-dev
+#include <GL/glut.h>
+
