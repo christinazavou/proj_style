@@ -60,3 +60,16 @@ with:
 	export PKG_CONFIG_PATH=/media/graphicslab/zavou/dev_libraries/opencv/latest/lib/pkgconfig
 sudo chmod +x /etc/profile.d/opencv.sh
 source /etc/profile.d/opencv.sh
+
+
+opencv3:
+sudo apt-get install gcc g++ cmake pkg-config build-essential libgtk2.0-dev libavcodec-dev libavformat-dev  libtiff5-dev  libswscale-dev 
+
+sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
+
+sudo apt update
+
+sudo apt install libjasper1 libjasper-dev
+
+
+
