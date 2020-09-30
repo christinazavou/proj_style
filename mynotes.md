@@ -90,9 +90,10 @@ cmake -D CMAKE_BUILD_TYPE=RELEASE \
       -D BUILD_EXAMPLES=ON \
       -D WITH_CUDA=OFF \
       -D BUILD_opencv_java=OFF \
-	  -D BUILD_opencv_python=OFF \
-	  -D BUILD_opencv_python3=OFF \
-	  -D PYTHON_DEFAULT_EXECUTABLE=/usr/bin/python3.8 ..
+      -D BUILD_opencv_python=OFF \
+      -D BUILD_opencv_python3=OFF \
+      -DOPENCV_GENERATE_PKGCONFIG=ON \
+      -D PYTHON_DEFAULT_EXECUTABLE=/usr/bin/python3.8 ..
 make -j4
 sudo make install
 sudo sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf.d/opencv.conf'
