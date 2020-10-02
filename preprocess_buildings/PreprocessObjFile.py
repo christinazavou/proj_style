@@ -21,7 +21,7 @@ def read_materials(folder, mtl_fn):
 
 def add_triangle_face(line, faces, vertex_normals, color):
 	assert len(line) == 4
-	if '//' in line:
+	if '//' in line[1]:
 		face_normal_idx = int(line[1].split('/')[-1])
 		assert face_normal_idx == int(line[2].split('/')[-1])
 		assert face_normal_idx == int(line[3].split('/')[-1])
@@ -41,7 +41,24 @@ def add_triangle_face(line, faces, vertex_normals, color):
 		faces.append(face)
 
 
-def read_obj(folder, obj_fn):
+def get_color(group_name):
+	if 'modernist' in group_name.lower():
+		return (0.43, 0.54, 0.97)
+	if 'byzantine' in group_name.lower():
+		return (0.96, 0.43, 0.65)
+	if 'venetian' in group_name.lower():
+		return (0.71, 0.43, 0.96)
+	if 'vernacular' in group_name.lower():
+		return (0.43, 0.96, 0.92)
+	if 'gothic' in group_name.lower() \
+			or 'colonial' in group_name.lower() \
+			or 'ottoman' in group_name.lower() \
+			or 'classicism' in group_name.lower():
+		return (0.00, 0.00, 0.00)
+	return (0.00, 0.00, 0.00)
+
+
+def read_obj(folder, obj_fn, color_based='mtl'):
 	"""
 	   Return:
 	   		vertices: N x 3, numpy.ndarray(float)
@@ -50,6 +67,12 @@ def read_obj(folder, obj_fn):
 	   		face_normals: M x 3, numpy.ndarray(float)
 	   		lines: K x 2, numpy.ndarray(int)
 	"""
+	if color_based == 'mtl':
+		print('Will be using material colour')
+	elif color_based == 'group':
+		print('Will be using group colour')
+	else:
+		raise Exception('Unrecognized color_based method {}'.format(color_based))
 
 	assert(os.path.isfile(os.path.join(folder, obj_fn)))
 
@@ -66,7 +89,6 @@ def read_obj(folder, obj_fn):
 		assert(os.path.isfile(os.path.join(folder, mtl_fn)))
 
 		# Read material params
-		# diffuse_materials = read_materials_with_diffuse_only(folder, mtl_fn)
 		diffuse_materials = read_materials(folder, mtl_fn)
 
 		# Read obj geometry
@@ -86,10 +108,12 @@ def read_obj(folder, obj_fn):
 				assert len(line) == 3
 				vt = [float(line[1]), float(line[2])]
 				vertex_textures.append(vt)  # we are not really using them
-			elif line[0] == 'usemtl':
-				# Material row
+			elif line[0] == 'usemtl' and color_based == 'mtl':
 				assert len(line) == 2
 				color = diffuse_materials[line[1]]
+			elif line[0] == 'g' and color_based == 'g':
+				assert line[1] == 'default' or len(line) >= 3 , "g line: {}".format(" ".join(line))
+				color = get_color(line[2]) if len(line) == 3 else (0., 0., 0.)
 			elif line[0] == 'f':
 				add_triangle_face(line, faces, vertex_normals, color)
 			elif line[0] == 'l':
@@ -98,7 +122,7 @@ def read_obj(folder, obj_fn):
 				l = [float(line[1]), float(line[2])]
 				lines.append(l)  # we are not really using them
 			else:
-				if line[0] != 's' and line[0] != 'g':
+				if line[0] != 's' and line[0] != 'usemtl' and line[0] != 'g' and line[0] != 'o':
 					print("line[0]={}".format(line[0]))
 
 	vertices = np.vstack(vertices)
@@ -132,9 +156,9 @@ def write_ply(folder, ply_fn, vertices, faces, face_color, face_normals):
 			 'property float z\n' \
 			 'element face ' + str(len(faces)) + '\n' \
 			 'property list uchar int vertex_indices\n' \
-			 'property float red\n' \
-			 'property float green\n' \
-			 'property float blue\n' \
+			 'property uchar red\n' \
+			 'property uchar green\n' \
+			 'property uchar blue\n' \
 			 'property float nx\n' \
 			 'property float ny\n' \
 			 'property float nz\n' \
@@ -148,6 +172,11 @@ def write_ply(folder, ply_fn, vertices, faces, face_color, face_normals):
 	def write_faces_with_colours_and_normals():
 		for face_ind, face in enumerate(faces):
 			color = face_color[face_ind]
+			if isinstance(color[0], float):
+				color[0] = int(color[0] * 255)
+				color[1] = int(color[1] * 255)
+				color[2] = int(color[2] * 255)
+
 			face_normal = face_normals[face_ind]
 			row = ' '.join([
 				str(len(face)),
@@ -179,21 +208,21 @@ def re_align_faces_based_on_normals(vertices, faces, face_normals):
 
 if __name__ == "__main__":
 
-	# _filename = "COMMERCIALcastle_mesh2985.obj"
-	# _folder = "/media/graphicslab/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
+	_filename = "COMMERCIALcastle_mesh2985.obj"
+	_folder = "/media/christina/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
 
 	# _filename = "COMMERCIALcastle_mesh0365.obj"
 	# _filename = "COMMERCIALcastle_mesh0882.obj"
 	# _filename = "COMMERCIALcastle_mesh0904.obj"
 	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/objects_with_textures"
 
-	_filename = "28_Stavrou_Economou_Building_01.obj"
-	_folder = "/media/christina/Elements/ANNFASS_DATA/objs/withStyle/28_Stavrou_Economou_Building"
+	# _filename = "28_Stavrou_Economou_Building_01.obj"
+	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/withStyle/28_Stavrou_Economou_Building"
 
 	# Read obj
-	_vertices, _faces, _face_color, _face_normals = read_obj(_folder, _filename)
+	_vertices, _faces, _face_color, _face_normals = read_obj(_folder, _filename, color_based='mtl')
 	_faces = faces_indices_with_index_0(_faces)
-	# _faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals)
+	_faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals) # FIXME
 
 	# Write ply
-	# write_ply(_folder, _filename[:-4]+'.ply', _vertices, _faces, _face_color, _face_normals)
+	write_ply(_folder, _filename[:-4]+'SC.ply', _vertices, _faces, _face_color, _face_normals)
