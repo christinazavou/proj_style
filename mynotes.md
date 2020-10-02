@@ -28,11 +28,13 @@ if i want to run everything for "demo":
 
 
 trimesh:
+---
 sudo apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev
 cd /usr/include/X11/extensions && sudo ln -s XI.h XInput.h
 
 
 opencv248:
+---
 sudo apt-get install libtiff5-dev
 sudo apt-get install gtk2.0
 ## sudo apt-get install libv4l-dev
@@ -63,6 +65,7 @@ source /etc/profile.d/opencv.sh
 
 
 opencv3:
+---
 sudo apt-get install gcc g++ cmake pkg-config build-essential libgtk2.0-dev libavcodec-dev libavformat-dev  libtiff5-dev  libswscale-dev 
 
 sudo add-apt-repository "deb http://security.ubuntu.com/ubuntu xenial-security main"
@@ -73,6 +76,7 @@ sudo apt install libjasper1 libjasper-dev
 
 
 opencv3.3.1:
+---
 sudo apt-get install qt5-default libgtk2.0-dev libtbb-dev
 sudo apt-get install python3-pip
 sudo pip3 install -U pip numpy
@@ -107,4 +111,51 @@ pkg-config --cflags opencv
 to use glut:
 sudo apt-get install freeglut3-dev
 #include <GL/glut.h>
+
+
+
+
+mitsuba2:
+---
+git clone --recursive https://github.com/mitsuba-renderer/mitsuba2
+cd mitsuba2
+git config --global alias.pullall '!f(){ git pull "$@" && git submodule update --init --recursive; }; f'
+git pullall
+
+cp resources/... and open ... and place ...
+"enabled": [
+        # The "scalar_rgb" variant *must* be included at the moment.
+        "scalar_rgb",
+        "packet_rgb",
+		"gpu_autodiff_rgb"
+    ],
+
+ python default:    /home/christina/miniconda3/envs/projstyle/bin/python3.7
+
+
+sudo apt install -y clang-9 libc++-9-dev libc++abi-9-dev cmake ninja-build
+sudo apt install -y libz-dev libpng-dev libjpeg-dev libxrandr-dev libxinerama-dev libxcursor-dev
+
+
+
+python:
+
+	sudo apt install -y python3-dev python3-distutils python3-setuptools
+	sudo apt install -y python3-pytest python3-pytest-xdist python3-numpy
+
+cmake:
+	export CC=clang-9
+	export CXX=clang++-9
+
+
+source activate projstyle
+
+mkdir build && cd build
+cmake -GNinja ..
+ninja
+
+
+
+sudo update-alternatives --install /usr/local/bin/python python /usr/bin/python2 20
+sudo update-alternatives --install /usr/local/bin/python python /usr/bin/python3 40
 

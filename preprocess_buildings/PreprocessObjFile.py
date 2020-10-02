@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 
-def read_materials_with_diffuse_only(folder, mtl_fn):
+def read_materials(folder, mtl_fn):
 	materials = {}
 	with open(os.path.join(folder, mtl_fn), 'r') as f_mtl:
 		for line in f_mtl:
@@ -10,17 +10,39 @@ def read_materials_with_diffuse_only(folder, mtl_fn):
 			if line[0] == 'newmtl':
 				assert (len(line) == 2)
 				mlt = line[1]
-			if line[0] == 'Kd':
-				assert (len(line) == 4)
+			elif line[0] == 'Kd':
+				assert (len(line) == 5) or (len(line) == 4)
 				rgb = np.array([float(line[1]), float(line[2]), float(line[3])], dtype=np.float32)
 				materials[mlt] = rgb
+			else:
+				continue
 	return materials
 
-				
-def read_obj(folder, obj_fn):
-	"""Read BuildNet obj with accompanied .mtl file
-	   Only diffuse parameter is specified in the material file (Kd r g b)
 
+def add_triangle_face(line, faces, vertex_normals, color):
+	assert len(line) == 4
+	if '//' in line:
+		face_normal_idx = int(line[1].split('/')[-1])
+		assert face_normal_idx == int(line[2].split('/')[-1])
+		assert face_normal_idx == int(line[3].split('/')[-1])
+		face_normal = vertex_normals[face_normal_idx - 1]
+		face = [float(line[1].split('/')[0]), float(line[2].split('/')[0]), float(line[3].split('/')[0]),
+				color[0], color[1], color[2],
+				face_normal[0], face_normal[1], face_normal[2]]
+		faces.append(face)
+	else:
+		v1, vt1, vn1 = line[1].split('/')
+		v2, vt2, vn2 = line[2].split('/')
+		v3, vt3, vn3 = line[3].split('/')
+
+		face = [float(v1), float(v2), float(v3),
+				color[0], color[1], color[2],  # we ignore texture, we only use colour (you could use vertex_textures)
+				vertex_normals[int(vn1)-1], vertex_normals[int(vn2)-1], vertex_normals[int(vn3)-1]]
+		faces.append(face)
+
+
+def read_obj(folder, obj_fn):
+	"""
 	   Return:
 	   		vertices: N x 3, numpy.ndarray(float)
 	   		faces: M x 3, numpy.ndarray(int)
@@ -31,62 +53,61 @@ def read_obj(folder, obj_fn):
 
 	assert(os.path.isfile(os.path.join(folder, obj_fn)))
 
-	# Return variables
-	vertices, faces, face_color, lines, vertex_normals = [], [], [], [], []
+	vertices, faces, face_color, lines, vertex_normals, vertex_textures = [], [], [], [], [], []
 
 	with open(os.path.join(folder, obj_fn), 'r') as f_obj:
-		# Get .mtl file
 		first_line = f_obj.readline().strip().split(' ')
+		if first_line[0] == "#":
+			f_obj.readline()
+			first_line = f_obj.readline().strip().split(' ')
 		assert(first_line[0] == 'mtllib')
 		mtl_fn = first_line[1]
 		assert(mtl_fn[:-4] == obj_fn[:-4])
 		assert(os.path.isfile(os.path.join(folder, mtl_fn)))
 
 		# Read material params
-		diffuse_materials = read_materials_with_diffuse_only(folder, mtl_fn)
+		# diffuse_materials = read_materials_with_diffuse_only(folder, mtl_fn)
+		diffuse_materials = read_materials(folder, mtl_fn)
 
 		# Read obj geometry
 		for line in f_obj:
 			line = line.strip().split(' ')
 			if line[0] == 'v':
 				# Vertex row
-				assert(len(line) == 4)
+				assert len(line) == 4
 				vertex = [float(line[1]), float(line[2]), float(line[3])]
 				vertices.append(vertex)
-			if line[0] == 'vn':
+			elif line[0] == 'vn':
 				# Vertex normal row
-				assert (len(line) == 4)
+				assert len(line) == 4
 				vn = [float(line[1]), float(line[2]), float(line[3])]
 				vertex_normals.append(vn)
-			if line[0] == 'usemtl':
+			elif line[0] == 'vt':
+				assert len(line) == 3
+				vt = [float(line[1]), float(line[2])]
+				vertex_textures.append(vt)  # we are not really using them
+			elif line[0] == 'usemtl':
 				# Material row
-				assert(len(line) == 2)
+				assert len(line) == 2
 				color = diffuse_materials[line[1]]
-			if line[0] == 'f':
-				# Face row
-				assert(len(line) == 4)
-				face_normal_ind = int(line[1].split('/')[-1])
-				assert(face_normal_ind == int(line[2].split('/')[-1]))
-				assert(face_normal_ind == int(line[3].split('/')[-1]))
-				face_normal = vertex_normals[face_normal_ind-1]
-				face = [float(line[1].split('/')[0]), float(line[2].split('/')[0]), float(line[3].split('/')[0]),
-						color[0], color[1], color[2],
-						face_normal[0], face_normal[1], face_normal[2]]
-				faces.append(face)
-			if line[0] == 'l':
+			elif line[0] == 'f':
+				add_triangle_face(line, faces, vertex_normals, color)
+			elif line[0] == 'l':
 				# Line row
-				assert(len(line) == 3)
+				assert len(line) == 3
 				l = [float(line[1]), float(line[2])]
-				lines.append(l)
+				lines.append(l)  # we are not really using them
+			else:
+				if line[0] != 's' and line[0] != 'g':
+					print("line[0]={}".format(line[0]))
 
 	vertices = np.vstack(vertices)
 	faces = np.vstack(faces)
 	face_color = faces[:, 3:6]
 	face_normals = faces[:, 6:9]
 	faces = faces[:, 0:3]
-	lines = np.vstack(lines)
 
-	return vertices, faces.astype(np.int32), face_color, face_normals, lines
+	return vertices, faces.astype(np.int32), face_color, face_normals
 
 
 def faces_indices_with_index_0(faces):
@@ -158,13 +179,21 @@ def re_align_faces_based_on_normals(vertices, faces, face_normals):
 
 if __name__ == "__main__":
 
-	_filename = "COMMERCIALcastle_mesh2985.obj"
-	_folder = "/media/graphicslab/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
+	# _filename = "COMMERCIALcastle_mesh2985.obj"
+	# _folder = "/media/graphicslab/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
+
+	# _filename = "COMMERCIALcastle_mesh0365.obj"
+	# _filename = "COMMERCIALcastle_mesh0882.obj"
+	# _filename = "COMMERCIALcastle_mesh0904.obj"
+	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/objects_with_textures"
+
+	_filename = "28_Stavrou_Economou_Building_01.obj"
+	_folder = "/media/christina/Elements/ANNFASS_DATA/objs/withStyle/28_Stavrou_Economou_Building"
 
 	# Read obj
-	_vertices, _faces, _face_color, _face_normals, _lines = read_obj(_folder, _filename)
+	_vertices, _faces, _face_color, _face_normals = read_obj(_folder, _filename)
 	_faces = faces_indices_with_index_0(_faces)
-	_faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals)
+	# _faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals)
 
 	# Write ply
-	write_ply(_folder, _filename[:-4]+'MY.ply', _vertices, _faces, _face_color, _face_normals)
+	# write_ply(_folder, _filename[:-4]+'.ply', _vertices, _faces, _face_color, _face_normals)
