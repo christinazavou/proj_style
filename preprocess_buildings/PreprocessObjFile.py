@@ -2,7 +2,7 @@ import os
 import numpy as np
 
 
-def read_materials_with_diffuse_only(folder, mtl_fn):
+def read_materials(folder, mtl_fn):
 	materials = {}
 	with open(os.path.join(folder, mtl_fn), 'r') as f_mtl:
 		for line in f_mtl:
@@ -10,10 +10,12 @@ def read_materials_with_diffuse_only(folder, mtl_fn):
 			if line[0] == 'newmtl':
 				assert (len(line) == 2)
 				mlt = line[1]
-			if line[0] == 'Kd':
-				assert (len(line) == 4)
+			elif line[0] == 'Kd':
+				assert (len(line) == 5) or (len(line) == 4)
 				rgb = np.array([float(line[1]), float(line[2]), float(line[3])], dtype=np.float32)
 				materials[mlt] = rgb
+			else:
+				continue
 	return materials
 
 				
@@ -37,13 +39,16 @@ def read_obj(folder, obj_fn):
 	with open(os.path.join(folder, obj_fn), 'r') as f_obj:
 		# Get .mtl file
 		first_line = f_obj.readline().strip().split(' ')
+		if first_line[0] == "#":
+			f_obj.readline()
+			first_line = f_obj.readline().strip().split(' ')
 		assert(first_line[0] == 'mtllib')
 		mtl_fn = first_line[1]
 		assert(mtl_fn[:-4] == obj_fn[:-4])
 		assert(os.path.isfile(os.path.join(folder, mtl_fn)))
 
 		# Read material params
-		diffuse_materials = read_materials_with_diffuse_only(folder, mtl_fn)
+		diffuse_materials = read_materials(folder, mtl_fn)
 
 		# Read obj geometry
 		for line in f_obj:
@@ -63,16 +68,28 @@ def read_obj(folder, obj_fn):
 				assert(len(line) == 2)
 				color = diffuse_materials[line[1]]
 			if line[0] == 'f':
-				# Face row
-				assert(len(line) == 4)
-				face_normal_ind = int(line[1].split('/')[-1])
-				assert(face_normal_ind == int(line[2].split('/')[-1]))
-				assert(face_normal_ind == int(line[3].split('/')[-1]))
-				face_normal = vertex_normals[face_normal_ind-1]
-				face = [float(line[1].split('/')[0]), float(line[2].split('/')[0]), float(line[3].split('/')[0]),
+
+				# assert(len(line) == 4)
+				# face_normal_ind = int(line[1].split('/')[-1])
+				# # assert(face_normal_ind == int(line[2].split('/')[-1]))
+				# # assert(face_normal_ind == int(line[3].split('/')[-1]))
+				# face_normal = vertex_normals[face_normal_ind-1]
+				# face = [float(line[1].split('/')[0]), float(line[2].split('/')[0]), float(line[3].split('/')[0]),
+				# 		color[0], color[1], color[2],
+				# 		face_normal[0], face_normal[1], face_normal[2]]
+				# faces.append(face)
+
+
+				v1, vt1, vn1 = line[1].split('/')
+				v2, vt2, vn2 = line[2].split('/')
+				v3, vt3, vn3 = line[3].split('/')
+
+				face = [float(v1), float(v2), float(v3),
 						color[0], color[1], color[2],
-						face_normal[0], face_normal[1], face_normal[2]]
+						# we ignore texture, we only use colour (you could use vertex_textures)
+						vertex_normals[int(vn1) - 1], vertex_normals[int(vn2) - 1], vertex_normals[int(vn3) - 1]]
 				faces.append(face)
+
 			if line[0] == 'l':
 				# Line row
 				assert(len(line) == 3)
@@ -84,7 +101,7 @@ def read_obj(folder, obj_fn):
 	face_color = faces[:, 3:6]
 	face_normals = faces[:, 6:9]
 	faces = faces[:, 0:3]
-	lines = np.vstack(lines)
+	# lines = np.vstack(lines)
 
 	return vertices, faces.astype(np.int32), face_color, face_normals, lines
 
@@ -158,13 +175,19 @@ def re_align_faces_based_on_normals(vertices, faces, face_normals):
 
 if __name__ == "__main__":
 
-	_filename = "COMMERCIALcastle_mesh2985.obj"
-	_folder = "/media/graphicslab/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
+	# _filename = "COMMERCIALcastle_mesh2985.obj"
+	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/buildnet_example/COMMERCIALcastle_mesh2985"
+	# _filename = "RESIDENTIALhouse_mesh3059.obj"
+	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/buildnet_example/RESIDENTIALhouse_mesh3059"
+	# _filename = "28_Stavrou_Economou_Building_01.obj"
+	# _folder = "/media/christina/Elements/ANNFASS_DATA/objs/withStyle/28_Stavrou_Economou_Building"
+	_filename = "29_Lefkaritis_Building_01.obj"
+	_folder = "/media/christina/Elements/ANNFASS_DATA/objs/withStyle/29_Lefkaritis_Building"
 
 	# Read obj
 	_vertices, _faces, _face_color, _face_normals, _lines = read_obj(_folder, _filename)
 	_faces = faces_indices_with_index_0(_faces)
-	_faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals)
+	# _faces = re_align_faces_based_on_normals(_vertices, _faces, _face_normals)
 
 	# Write ply
 	write_ply(_folder, _filename[:-4]+'MY.ply', _vertices, _faces, _face_color, _face_normals)

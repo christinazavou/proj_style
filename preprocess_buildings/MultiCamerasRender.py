@@ -1,22 +1,34 @@
 import bpy
 import math
 import os
-
+import sys
+import argparse
 # NOTE: type in console: help(bpy.data.objects.get) !!!
 
 
-DATA_DIR = "E:\ANNFASS_DATA\objs"
-RENDER_DIR = "C:\\Users\\GraphicsLab\\Documents\\zavou_repositories\\dev\\blenderRelated"
+DATA_DIR = None
+RENDER_DIR = None
+AXIS = None
 
 
 def load_obj(name):
-    name = 'example_commercial_hotel_mesh0215\COMMERCIALhotel_building_mesh0215.obj'
     file_loc = os.path.join(DATA_DIR, name)
     imported_object = bpy.ops.import_scene.obj(filepath=file_loc)
+    # bpy.context.scene.unit_settings.length_unit = 'METERS'
+    # bpy.context.scene.unit_settings.scale_length = 0.001
+
+
+def load_ply(name):
+    file_loc = os.path.join(DATA_DIR, name)
+    imported_object = bpy.ops.import_mesh.ply(filepath=file_loc)
+    # bpy.context.scene.unit_settings.length_unit = 'METERS'
+    # bpy.context.scene.unit_settings.scale_length = 0.001
 
 
 def clean_scene():
     for objkey, objvalue in bpy.data.objects.items():
+        if 'light' in objkey.lower():
+            continue
         bpy.data.objects.remove(objvalue, do_unlink=True)
 
 
@@ -26,7 +38,10 @@ def initialize():
     bpy.context.scene.collection.objects.link(empty)
     bpy.context.scene.collection.objects.link(camera)
     # NOTE that z is height and y is depth !!
-    camera.location = (2, 2, 0)
+    if AXIS == 'z':
+        camera.location = (2, 2, 0)
+    else:
+        camera.location = (2, 0, 2)
     #camera.rotation_euler = (0, math.radians(30), math.radians(30))
     camera_constraint = camera.constraints.new('TRACK_TO')
     camera_constraint.target = empty
@@ -44,17 +59,21 @@ def set_camera_around_point(center_x=0, center_y=0, camera_x=2, camera_y=2, degr
     angle = math.radians(degrees)
     x = center_x+math.cos(angle)*(camera_x-center_x)-math.sin(angle)*(camera_y-center_y)
     y = center_y+math.sin(angle)*(camera_x-center_x)+math.cos(angle)*(camera_y-center_y)
-    return (x, y, 0)
+    if AXIS == 'z':
+        return (x, y, 0)
+    else:
+        return (x, 0, y)
 
 
-def render(camera, d=30):
+def render(name, camera, d=30):
     x_y_z = set_camera_around_point(degrees=d)
     camera.location = x_y_z
+    bpy.context.scene.render.engine = 'BLENDER_EEVEE'
     renderer = bpy.context.scene.render # or D.scenes[0].render
     #scale = renderer.resolution_percentage / 100
     #WIDTH = int(renderer.resolution_x * scale)
     #HEIGHT = int(renderer.resolution_y*scale)
-    renderer.filepath = os.path.join(RENDER_DIR, "angle{}.jpg".format(d))
+    renderer.filepath = os.path.join(RENDER_DIR, "{}angle{}.jpg".format(name, d))
     bpy.ops.render.render(write_still=True)
 
 
@@ -62,13 +81,52 @@ def render(camera, d=30):
 #empty.select_set(True)
 
 
-if __name__ == '__main__':
-    
+def multi_view_render(name):
     clean_scene()
     initialize()
-    load_obj('example_commercial_hotel_mesh0215\COMMERCIALhotel_building_mesh0215.obj')
+    if '.obj' in name:
+        load_obj(name)
+    elif '.ply' in name:
+        load_ply(name)
+    else:
+        raise Exception('{} not supported'.format(name.split('.')[-1]))
     cam = bpy.data.objects['Camera']
     bpy.context.view_layer.objects.active = cam
     bpy.context.scene.camera = cam
     for a in [30, 60, 90, 120, 150, 180, 210, 240, 270, 300, 330, 360]:
-        render(cam, a)
+        render(name, cam, a)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    _, all_arguments = parser.parse_known_args()
+    double_dash_index = all_arguments.index('--')
+    script_args = all_arguments[double_dash_index + 1:]
+
+    parser.add_argument('-dd', '--datadir')
+    parser.add_argument('-rd', '--renderdir')
+    parser.add_argument('-fn', '--filename')
+    parser.add_argument('-a', '--axis', default='z')
+    args, _ = parser.parse_known_args(script_args)
+
+    DATA_DIR = args.datadir  # "/media/christina/Elements/ANNFASS_DATA/objs/objects_with_textures"
+    RENDER_DIR = args.renderdir  # "/media/christina/Elements/ANNFASS_data/proj_style"
+    AXIS = args.axis
+    multi_view_render(args.filename)  # 'COMMERCIALcastle_mesh0365.obj'
+
+# COMMERCIALcastle_mesh2985MY.ply
+
+# blender --background --python preprocess_buildings/MultiCamerasRender.py -- --datadir /media/christina/Elements/ANNFASS_DATA/objs --renderdir /media/christina/Elements/ANNFASS_data/proj_style_out --filename COMMERCIALcastle_mesh0365.ply
+
+# DATA_DIR = "/media/christina/Elements/ANNFASS_DATA/objs"
+# RENDER_DIR = "/media/christina/Elements/ANNFASS_data/proj_style_out"
+# multi_view_render("COMMERCIALcastle_mesh0365.ply")
+# scene = bpy.context.scene
+# lamp_data = bpy.data.lamps.new(name="New Lamp", type='POINT')
+# lamp_object = bpy.data.objects.new(name="New Lamp", object_data=lamp_data)
+# scene.objects.link(lamp_object)
+# lamp_object.location = (5.0, 5.0, 5.0)
+# lamp_object.select = True
+# scene.objects.active = lamp_object
+
