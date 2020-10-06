@@ -14,12 +14,16 @@ def read_obj(obj_fn):
     assert os.path.isfile(obj_fn)
 
     # Return variables
-    vertices, faces, vertex_normals, edges, edge_colors = [], [], [], [], []
+    vertices, faces, vertex_normals = [], [], []
 
     with open(obj_fn, 'r') as f_obj:
         # Get .mtl file
         first_line = f_obj.readline().strip().split(' ')
-        assert first_line[0] == 'mtllib', first_line[0]
+        if first_line[0] == "#":
+            f_obj.readline()
+            first_line = f_obj.readline().strip().split('mtllib ')
+
+        assert first_line[0] == '', first_line[0]
         mtl_fn = first_line[1]
         assert mtl_fn[:-4] == obj_fn.split(os.sep)[-1][:-4], mtl_fn[:-4] + " == " + obj_fn.split(os.sep)[-1][:-4]
         assert os.path.isfile(os.path.join(os.path.dirname(obj_fn), mtl_fn)), os.path.join(os.path.dirname(obj_fn), mtl_fn)
@@ -57,29 +61,26 @@ def read_obj(obj_fn):
             if line[0] == 'f':
                 # Face row
                 assert len(line) == 4, line
-                face_normal_ind = int(line[1].split('/')[-1])
-                assert face_normal_ind == int(line[2].split('/')[-1])
-                assert face_normal_ind == int(line[3].split('/')[-1])
-                face_normal = vertex_normals[face_normal_ind-1]
+                face_normal_ind1 = int(line[1].split('/')[-1])
+                face_normal_ind2 = int(line[2].split('/')[-1])
+                face_normal_ind3 = int(line[3].split('/')[-1])
+                face_normal1 = vertex_normals[face_normal_ind1-1]
+                face_normal2 = vertex_normals[face_normal_ind2-1]
+                face_normal3 = vertex_normals[face_normal_ind3-1]
+                face_normal = np.mean([face_normal1, face_normal2, face_normal3], axis=0)
                 face = [float(line[1].split('/')[0]), float(line[2].split('/')[0]), float(line[3].split('/')[0]),
                         face_normal[0], face_normal[1], face_normal[2]]
                 faces.append(face)
-                edges.append([float(line[1].split('/')[0]), float(line[2].split('/')[0])])
-                edges.append([float(line[2].split('/')[0]), float(line[3].split('/')[0])])
-                edges.append([float(line[3].split('/')[0]), float(line[1].split('/')[0])])
-                edge_colors.append([color, color, color])
 
     vertices = np.vstack(vertices)
     faces = np.vstack(faces)
     face_normals = faces[:, 3:6]
     faces = faces[:, 0:3]
-    edges = np.vstack(edges)
-    edge_colors = np.vstack(edge_colors)
 
-    return vertices, faces.astype(np.int32), face_normals, edges, edge_colors
+    return vertices, faces.astype(np.int32), face_normals
 
 
-def write_ply(ply_fn, vertices, faces, face_normals, edges, edge_colors):
+def write_ply(ply_fn, vertices, faces, face_normals):
     '''Write shape in .ply with face color information
 
        Return:
@@ -98,12 +99,6 @@ def write_ply(ply_fn, vertices, faces, face_normals, edges, edge_colors):
                   'property float nx\n' \
                   'property float ny\n' \
                   'property float nz\n' \
-             'element edge ' + str(len(edges)) + '\n' \
-             'property int vertex1\n' \
-             'property int vertex2\n' \
-             'property uchar red\n' \
-             'property uchar green\n' \
-             'property uchar blue\n' \
              'end_header\n'
 
     if np.min(faces) == 1:
@@ -123,22 +118,16 @@ def write_ply(ply_fn, vertices, faces, face_normals, edges, edge_colors):
             row = ' '.join([str(len(face)), str(face[0]), str(face[1]), str(face[2]),
                             str(face_normal[0]), str(face_normal[1]), str(face_normal[2])]) + '\n'
             f_ply.write(row)
-        for edge_ind, edge in enumerate(edges):
-            edge_color = edge_colors[edge_ind]
-            row = ' '.join([str(int(edge[0])), str(int(edge[1])),
-                            str(int(edge_color[0] * 255)), str(int(edge_color[1]*255)), str(int(edge_color[2]*255))]) + '\n'
-            f_ply.write(row)
 
 
 if __name__ == "__main__":
 
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/RESIDENTIALvilla_mesh3265.obj"
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/RESIDENTIALhouse_mesh2302.obj"
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/RELIGIOUScathedral_mesh0754.obj"
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/MILITARYcastle_mesh2135.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/28_Stavrou Economou Building/28_Stavrou Economou Building_01.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/29_Lefkaritis Building/29_Lefkaritis Building_01/29_Lefkaritis Building_01.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/30_Nicolaou Building/30_Nicolaou Building_01.obj"
 
     # Read obj
-    vertices, faces, face_normals, edges, edge_colors = read_obj(obj_fn=filename)
+    vertices, faces, face_normals = read_obj(obj_fn=filename)
 
     # Re-align faces based on face normals
     if np.min(faces) == 1:
@@ -156,4 +145,4 @@ if __name__ == "__main__":
             faces[angle_ind, 2] = v1
 
     # Write ply
-    write_ply(filename[:-4]+'Marios.ply', vertices, faces, face_normals, edges, edge_colors)
+    write_ply(filename[:-4]+'Marios.ply', vertices, faces, face_normals)
