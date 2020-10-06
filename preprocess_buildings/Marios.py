@@ -35,7 +35,7 @@ def read_obj(obj_fn):
                     assert len(line) == 2, line
                     mlt = line[1]
                 if line[0] == 'Kd':
-                    assert len(line) == 4, line
+                    assert len(line) == 4 or len(line) == 5, line
                     rgb = np.array([float(line[1]), float(line[2]), float(line[3])], dtype=np.float32)
                     diffuse_materials[mlt] = rgb
 
@@ -130,7 +130,7 @@ def write_ply(ply_fn, vertices, faces, face_color, face_normals):
 
 if __name__ == "__main__":
 
-    filename = "/home/christina/Downloads/COMMERCIALcastle_mesh2985/COMMERCIALcastle_mesh2985.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/partnet_objs/objects_with_textures/RESIDENTIALvilla_mesh3265.obj"
 
     # Read obj
     vertices, faces, face_color, face_normals, lines = read_obj(obj_fn=filename)
