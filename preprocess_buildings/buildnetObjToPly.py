@@ -130,7 +130,7 @@ def write_ply(ply_fn, vertices, faces, face_color, face_normals):
 
 if __name__ == "__main__":
 
-    filename = "/media/christina/Elements/ANNFASS_DATA/partnet_objs/objects_with_textures/RESIDENTIALvilla_mesh3265.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/RESIDENTIALvilla_mesh3265.obj"
 
     # Read obj
     vertices, faces, face_color, face_normals, lines = read_obj(obj_fn=filename)
