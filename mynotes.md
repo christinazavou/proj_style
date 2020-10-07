@@ -108,3 +108,16 @@ to use glut:
 sudo apt-get install freeglut3-dev
 #include <GL/glut.h>
 
+
+1. render from 12 cameras (30 degrees rotation and 30 degrees elevation)
+2. sample each rendered view, and for each sampled point generate a patch as the window centered at point.
+3. for each rendered view run kmeans clustering on the patches, with K=50
+4. convolution: 
+	divide image in 4
+	apply convolution on initial image and on 4 sub images
+	apply max pooling
+	result: 5x50 feature vectors
+5. pslf: semi-supervised: use labels on small sample.
+	style triplets ???
+6. back projection: keep location info when going from 3D to 2D
+	how?
