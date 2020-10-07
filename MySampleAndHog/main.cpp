@@ -15,6 +15,9 @@
 #include <cstdio>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <cmath>
+#include <cstring>
+
 using namespace cv;
 using namespace std;
 
