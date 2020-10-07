@@ -532,7 +532,6 @@ void render()
         finish = clock();
         cout << "it takes " << (finish - start) / 1000 << "seconds" << endl;
 
-
     }
 }
 
