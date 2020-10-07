@@ -109,14 +109,17 @@ void setSeeds()
         int temp = 0;
         while (temp<model->numtriangles)
         {
+            // first vertex of the face triangle that is randomly picked ?
             double A[] = { model->vertices[model->triangles[index].vindices[0] * 3 + 0],
                            model->vertices[model->triangles[index].vindices[0] * 3 + 1],
                            model->vertices[model->triangles[index].vindices[0] * 3 + 2] };
 
+            // second vertex of the face triangle that is randomly picked ?
             double B[] = { model->vertices[model->triangles[index].vindices[1] * 3 + 0],
                            model->vertices[model->triangles[index].vindices[1] * 3 + 1],
                            model->vertices[model->triangles[index].vindices[1] * 3 + 2] };
 
+            // third vertex of the face triangle that is randomly picked ?
             double C[] = { model->vertices[model->triangles[index].vindices[2] * 3 + 0],
                            model->vertices[model->triangles[index].vindices[2] * 3 + 1],
                            model->vertices[model->triangles[index].vindices[2] * 3 + 2] };
@@ -254,7 +257,7 @@ void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
     /*string projection_file = projection_path + "\\" +fz.files[model_current].name
         + "_"  + std::to_string(view_current) + ".bmp";*/
 
-    string projection_file = projection_path + PATH_SEP + to_string((long double)blackindex) + ".bmp";
+    string projection_file = projection_path + PATH_SEP + std::to_string(blackindex) + ".bmp";
 
     BmpImage* image = readbmp(projection_file);
 
@@ -534,7 +537,6 @@ void render()
         model_current++;
         finish = clock();
         cout << "it takes " << (finish - start) / 1000 << "seconds" << endl;
-
 
     }
 }
