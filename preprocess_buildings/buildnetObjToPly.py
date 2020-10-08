@@ -58,6 +58,11 @@ def read_obj(obj_fn):
                 color = diffuse_materials[line[1]]
             if line[0] == 'f':
                 # Face row
+
+                # one face row can be represented as v/vt/vn or v//vn
+                # For one face .. you can get the face normal as an interpolation of the normals of each vertex
+                # belonging to it. Here, (in buildnet data) each vertex of a face has the same normal.
+
                 assert len(line) == 4, line
                 face_normal_ind = int(line[1].split('/')[-1])
                 assert face_normal_ind == int(line[2].split('/')[-1])
@@ -118,6 +123,11 @@ def write_ply(ply_fn, vertices, faces, face_color, face_normals):
         for vertex in vertices:
             row = ' '.join([str(vertex[0]), str(vertex[1]), str(vertex[2])]) + '\n'
             f_ply.write(row)
+
+        # In .ply readers, like blender etc, the colour must be on each vertex. Not on edges, not on faces.
+        # This is probably because when you render it the colours of vertices get blend together according to
+        # the faces...
+
         # Write faces + face_color
         for face_ind, face in enumerate(faces):
             color = face_color[face_ind]

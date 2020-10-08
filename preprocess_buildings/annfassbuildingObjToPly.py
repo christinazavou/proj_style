@@ -18,15 +18,16 @@ def read_obj(obj_fn):
 
     with open(obj_fn, 'r') as f_obj:
         # Get .mtl file
-        first_line = f_obj.readline().strip().split(' ')
-        if first_line[0] == "#":
-            f_obj.readline()
-            first_line = f_obj.readline().strip().split('mtllib ')
+        first_line = f_obj.readline()
+        while first_line[0] == "#" or first_line.strip() == '':
+            first_line = f_obj.readline()
+        first_line = first_line.strip().split('mtllib ')
 
-        assert first_line[0] == '', first_line[0]
+        assert first_line[0] == '', first_line
         mtl_fn = first_line[1]
-        assert mtl_fn[:-4] == obj_fn.split(os.sep)[-1][:-4], mtl_fn[:-4] + " == " + obj_fn.split(os.sep)[-1][:-4]
-        assert os.path.isfile(os.path.join(os.path.dirname(obj_fn), mtl_fn)), os.path.join(os.path.dirname(obj_fn), mtl_fn)
+        mtl_filename = mtl_fn.split(os.sep)[-1]
+        dir_name = os.path.dirname(obj_fn)
+        assert os.path.isfile(os.path.join(dir_name, mtl_filename)), os.path.join(dir_name, mtl_filename)
 
         # Read material params
         diffuse_materials = {}
@@ -59,6 +60,9 @@ def read_obj(obj_fn):
                 assert len(line) == 2, line
                 color = diffuse_materials[line[1]]
             if line[0] == 'f':
+
+                # from here i can generate one new vertex with this colour .. i.e. duplicate vertices
+
                 # Face row
                 assert len(line) == 4, line
                 face_normal_ind1 = int(line[1].split('/')[-1])
@@ -125,6 +129,8 @@ if __name__ == "__main__":
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/28_Stavrou Economou Building/28_Stavrou Economou Building_01.obj"
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/29_Lefkaritis Building/29_Lefkaritis Building_01/29_Lefkaritis Building_01.obj"
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/30_Nicolaou Building/30_Nicolaou Building_01.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_without_style_objs/09_Ayios Michael Tripiotis/09_Ayios Michael Tripiotis_01_tri.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_without_style_objs/13_Kyrenia Gate/13_Kyrenia Gate_01_tri.obj"
 
     # Read obj
     vertices, faces, face_normals = read_obj(obj_fn=filename)
