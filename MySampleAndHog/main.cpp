@@ -290,14 +290,14 @@ void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
         //sprintf(seed_index, "%02d", (model->seed_current + 1));
         //string index_seed(seed_index);
 
-        string patch_file = patch_path + PATH_SEP + to_string((long double)view_current) + PATH_SEP +
+        string patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
                             to_string((long double)model_current + 1 + model_begin) + "_" +
                             to_string((long double)model->seed_current + 1) + ".bmp";
 
         //cout << "What the hell" << endl;
         WriteBitmapFile(patch_file.data(), patch_size, patch_size, (unsigned char*)blackpatch->dataOfBmp);
 
-        patch_file = patch_path + PATH_SEP + to_string((long double)view_current) + PATH_SEP +
+        patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
                      to_string((long double)model_current + 1 + model_begin) + "_" +
                      to_string((long double)model->seed_current + 1) + ".txt";
 
@@ -374,7 +374,7 @@ void initialize(string params)
     }
     for (int i = 1; i <= view_num; i++)
     {
-        string temp = patch_path + PATH_SEP + to_string((long double)i);
+        string temp = patch_path + PATH_SEP + std::to_string(i);
         if (access(temp.c_str(), F_OK) == -1)
         {
             mkdir(temp.data(), 0777);

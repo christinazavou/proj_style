@@ -18,7 +18,9 @@ add_executable(${EXECUTABLE}
         ${SOURCES})
 
 add_executable(${TEST_EXECUTABLE}
-        test_src/TestMe.cpp)
+        test_src/TestReadBmp.cpp
+        readbmp.cpp
+        readbmp.h)
 
 ## on pc:
 #set(OpenGlLinkers -lglut -lGLU -lGL) # setting all the Glut libraries as one variable.
