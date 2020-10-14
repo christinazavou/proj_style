@@ -14,6 +14,8 @@ file(GLOB SOURCES "*.cpp")
 
 add_executable(${EXECUTABLE} ${HEADERS} ${SOURCES})
 
-add_executable(TestExt test/testReadFiles.cpp test/testReadFiles.h FileZ.cpp FileZ.h)
+add_executable(TestExe FileZ.h FileZ.cpp test/test_bmp_io.cpp)
+add_executable(TestExe0 test/BitmapIO_0.cpp test/BitmapIO_0.h)
+add_executable(TestExe1 test/BitmapIO_1.cpp)
 
 target_link_libraries(${EXECUTABLE} libGL.so libglut.so libGLU.so)

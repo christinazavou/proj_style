@@ -2,9 +2,6 @@
 #include "FileZ.h"
 #include "CommonZ.h"
 #include "model.h"
-#include "readbmp.h"
-//#include "windows.h"
-//#include "direct.h"
 #include <ctime>
 #include <cstdio>
 #include <iostream>
@@ -126,74 +123,59 @@ void isincube()
 	}
 }
 
-bool WriteBitmapFile(const char * filename, int width, int height, unsigned char * bitmapData)
+/**
+ * Save the current image to a PPM file.
+ * (from TriMesh2 library)
+ */
+void dump_image(const char* output_file)
 {
-	//���BITMAPFILEHEADER
-	mytagBITMAPFILEHEADER bitmapFileHeader;
-	memset(&bitmapFileHeader, 0, sizeof(mytagBITMAPFILEHEADER));
-	bitmapFileHeader.bfSize = sizeof(mytagBITMAPFILEHEADER);
-	bitmapFileHeader.bfType = 0x4d42;	//BM
-	bitmapFileHeader.bfOffBits = sizeof(mytagBITMAPFILEHEADER) + sizeof(mytagBITMAPINFOHEADER);
+    // Find first non-used filename
+    FILE *f;
+    while (1) {
+        f = fopen(output_file, "rb");
+        if (!f) {
+            f = fopen(output_file, "wb");
+            printf("\n\nSaving image %s... ", output_file);
+            fflush(stdout);
+            break;
+        }
+        fclose(f);
+    }
 
-	//���BITMAPINFOHEADER
-    mytagBITMAPINFOHEADER bitmapInfoHeader;
-	memset(&bitmapInfoHeader, 0, sizeof(mytagBITMAPINFOHEADER));
-	bitmapInfoHeader.biSize = sizeof(mytagBITMAPINFOHEADER);
-	bitmapInfoHeader.biWidth = width;
-	bitmapInfoHeader.biHeight = height;
-	bitmapInfoHeader.biPlanes = 1;
-	bitmapInfoHeader.biBitCount = 24;
-	bitmapInfoHeader.biCompression = 0;
-	bitmapInfoHeader.biSizeImage = width * abs(height) * 3;
+    // Read pixels
+    GLint V[4];
+    glGetIntegerv(GL_VIEWPORT, V);
+    GLint width = V[2], height = V[3];
+    char *buf = new char[width*height*3];
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadPixels(V[0], V[1], width, height, GL_RGB, GL_UNSIGNED_BYTE, buf);
 
-	//////////////////////////////////////////////////////////////////////////
-	FILE * filePtr;			//����Ҫ�����bitmap�ļ���
-	unsigned char tempRGB;	//��ʱɫ��
-	int imageIdx;
+    // Flip top-to-bottom
+    for (int i = 0; i < height/2; i++) {
+        char *row1 = buf + 3 * width * i;
+        char *row2 = buf + 3 * width * (height - 1 - i);
+        for (int j = 0; j < 3 * width; j++)
+            std::swap(row1[j], row2[j]);
+    }
 
-	//����R��B������λ��,bitmap���ļ����õ���BGR,�ڴ����RGB
-	for (imageIdx = 0; imageIdx < bitmapInfoHeader.biSizeImage; imageIdx += 3)
-	{
-		tempRGB = bitmapData[imageIdx];
-		bitmapData[imageIdx] = bitmapData[imageIdx + 2];
-		bitmapData[imageIdx + 2] = tempRGB;
-	}
+    // Write out file
+    fprintf(f, "P6\n#\n%d %d\n255\n", width, height);
+    fwrite(buf, width*height*3, 1, f);
+    fclose(f);
+    delete [] buf;
 
-	filePtr = fopen(filename, "wb");
-	if (NULL == filePtr)
-	{
-		return false;
-	}
-
-	fwrite(&bitmapFileHeader, sizeof(mytagBITMAPFILEHEADER), 1, filePtr);
-
-	fwrite(&bitmapInfoHeader, sizeof(mytagBITMAPINFOHEADER), 1, filePtr);
-
-	fwrite(bitmapData, bitmapInfoHeader.biSizeImage, 1, filePtr);
-
-	fclose(filePtr);
-	return true;
+    printf("Done.\n\n");
 }
 
-void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
+void saveScreenShotAsPpm(GLfloat angle)
 {
-	//int clnHeight,clnWidth;	//client width and height
-	static void * screenData;
-	//  RECT rc;
-	int len = clnWidth * clnHeight * 3;
-	screenData = malloc(len);
-	memset(screenData, 0, len);
-	glReadPixels(0, 0, clnWidth, clnHeight, GL_RGB, GL_UNSIGNED_BYTE, screenData);
-
 	int view_current = angle / 30 + 1;
-
 	string
 		filename2 = back_projection_path + PATH_SEP +
 		std::to_string(model_current + 1) + "_" +
 		std::to_string(model->seed_current + 1) + "_" +
-		std::to_string(view_current) + ".bmp";
-	WriteBitmapFile(filename2.data(), clnWidth, clnHeight, (unsigned char*)screenData);
-	free(screenData);
+		std::to_string(view_current) + ".ppm";
+    dump_image(filename2.data());
 }
 
 void initialize(string params)
@@ -358,7 +340,7 @@ void render()
 				glPopMatrix();
 
 				if (model->isstyle[model->seed_current])
-					saveScreenShot(window_size, window_size, angle);
+                    saveScreenShotAsPpm(angle);
 				//glutSwapBuffers();
 			}
 			model->seed_current++;
