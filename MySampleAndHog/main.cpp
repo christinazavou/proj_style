@@ -188,55 +188,6 @@ void del()
     delete[] model;
 }
 
-bool WriteBitmapFile(const char * filename, int width, int height, unsigned char * bitmapData)
-{
-    //���BITMAPFILEHEADER
-    BITMAPFILEHEADER bitmapFileHeader;
-    memset(&bitmapFileHeader, 0, sizeof(BITMAPFILEHEADER));
-    bitmapFileHeader.bfSize = sizeof(BITMAPFILEHEADER);
-//    bitmapFileHeader.bfType = 0x4d42;	//BM
-    bitmapFileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
-
-    //���BITMAPINFOHEADER
-    BITMAPINFOHEADER bitmapInfoHeader;
-    memset(&bitmapInfoHeader, 0, sizeof(BITMAPINFOHEADER));
-    bitmapInfoHeader.biSize = sizeof(BITMAPINFOHEADER);
-    bitmapInfoHeader.biWidth = width;
-    bitmapInfoHeader.biHeight = height;
-    bitmapInfoHeader.biPlanes = 1;
-    bitmapInfoHeader.biBitCount = 24;
-//    bitmapInfoHeader.biCompression = BI_RGB;
-    bitmapInfoHeader.biSizeImage = width * abs(height) * 3;
-
-    //////////////////////////////////////////////////////////////////////////
-    FILE * filePtr;			//����Ҫ�����bitmap�ļ���
-    unsigned char tempRGB;	//��ʱɫ��
-    int imageIdx;
-
-    //����R��B������λ��,bitmap���ļ����õ���BGR,�ڴ����RGB
-    for (imageIdx = 0; imageIdx < bitmapInfoHeader.biSizeImage; imageIdx += 3)
-    {
-        tempRGB = bitmapData[imageIdx];
-        bitmapData[imageIdx] = bitmapData[imageIdx + 2];
-        bitmapData[imageIdx + 2] = tempRGB;
-    }
-
-    filePtr = fopen(filename, "wb");
-    if (NULL == filePtr)
-    {
-        return false;
-    }
-
-    fwrite(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
-
-    fwrite(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
-
-    fwrite(bitmapData, bitmapInfoHeader.biSizeImage, 1, filePtr);
-
-    fclose(filePtr);
-    return true;
-}
-
 void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
 {
     //int clnHeight,clnWidth;	//client width and height
@@ -293,9 +244,6 @@ void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
         string patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
                             to_string((long double)model_current + 1 + model_begin) + "_" +
                             to_string((long double)model->seed_current + 1) + ".bmp";
-
-        //cout << "What the hell" << endl;
-        WriteBitmapFile(patch_file.data(), patch_size, patch_size, (unsigned char*)blackpatch->dataOfBmp);
 
         patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
                      to_string((long double)model_current + 1 + model_begin) + "_" +

@@ -1,6 +1,7 @@
 import os
 import numpy as np
 
+
 def read_obj(obj_fn):
     """Read BuildNet obj with accompanied .mtl file
        Only diffuse parameter is specified -> rgb = kd
@@ -13,10 +14,10 @@ def read_obj(obj_fn):
                lines: K x 2, numpy.ndarray(int)
     """
 
-    assert os.path.isfile(obj_fn)
+    assert os.path.isfile(obj_fn), obj_fn
 
     # Return variables
-    vertices, faces, face_color, lines, vertex_normals = [], [], [], [], []
+    vertices, faces, face_color, vertex_normals = [], [], [], []
 
     with open(obj_fn, 'r') as f_obj:
         # Get .mtl file
@@ -72,20 +73,14 @@ def read_obj(obj_fn):
                         color[0], color[1], color[2],
                         face_normal[0], face_normal[1], face_normal[2]]
                 faces.append(face)
-            if line[0] == 'l':
-                # Line row
-                assert len(line) == 3
-                l = [float(line[1]), float(line[2])]
-                lines.append(l)
 
     vertices = np.vstack(vertices)
     faces = np.vstack(faces)
     face_color = faces[:, 3:6]
     face_normals = faces[:, 6:9]
     faces = faces[:, 0:3]
-    lines = np.vstack(lines)
 
-    return vertices, faces.astype(np.int32), face_color, face_normals, lines
+    return vertices, faces.astype(np.int32), face_color, face_normals
 
 
 def write_ply(ply_fn, vertices, faces, face_color, face_normals):
@@ -138,12 +133,12 @@ def write_ply(ply_fn, vertices, faces, face_color, face_normals):
             f_ply.write(row)
 
 
-if __name__ == "__main__":
-
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/RESIDENTIALvilla_mesh3265.obj"
-
+def convert_obj_to_ply(filename, out_folder):
     # Read obj
-    vertices, faces, face_color, face_normals, lines = read_obj(obj_fn=filename)
+    vertices, faces, face_color, face_normals = read_obj(obj_fn=filename)
+
+    object_name = filename.split(os.sep)[-1][:-4]
+    output_path = os.path.join(out_folder, object_name+"PlainMesh.ply")
 
     # Re-align faces based on face normals
     if np.min(faces) == 1:
@@ -161,4 +156,17 @@ if __name__ == "__main__":
             faces[angle_ind, 2] = v1
 
     # Write ply
-    write_ply(filename[:-4]+'Marios.ply', vertices, faces, face_color, face_normals)
+    write_ply(output_path, vertices, faces, face_color, face_normals)
+
+
+if __name__ == "__main__":
+
+    obj_list_file = "/media/christina/Elements/ANNFASS_SOLUTION/proj_style_data/rtsc_in/buildnet/obj_list.txt"
+    out_path = "/media/christina/Elements/ANNFASS_SOLUTION/proj_style_data/rtsc_in/buildnet/"
+    with open(obj_list_file, "r") as f_in:
+        while True:
+            obj_file = f_in.readline().strip()
+            if ".obj" in obj_file:
+                convert_obj_to_ply(obj_file, out_path)
+            else:
+                break
