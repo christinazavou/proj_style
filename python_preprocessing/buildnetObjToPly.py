@@ -133,12 +133,9 @@ def write_ply(ply_fn, vertices, faces, face_color, face_normals):
             f_ply.write(row)
 
 
-def convert_obj_to_ply(filename, out_folder):
+def convert_obj_to_ply(filename_in, filename_out):
     # Read obj
-    vertices, faces, face_color, face_normals = read_obj(obj_fn=filename)
-
-    object_name = filename.split(os.sep)[-1][:-4]
-    output_path = os.path.join(out_folder, object_name+"PlainMesh.ply")
+    vertices, faces, face_color, face_normals = read_obj(obj_fn=filename_in)
 
     # Re-align faces based on face normals
     if np.min(faces) == 1:
@@ -156,10 +153,12 @@ def convert_obj_to_ply(filename, out_folder):
             faces[angle_ind, 2] = v1
 
     # Write ply
-    write_ply(output_path, vertices, faces, face_color, face_normals)
+    write_ply(filename_out, vertices, faces, face_color, face_normals)
 
 
 if __name__ == "__main__":
+
+    # todo: parallelize it
 
     obj_list_file = "/media/christina/Elements/ANNFASS_SOLUTION/proj_style_data/rtsc_in/buildnet/obj_list.txt"
     out_path = "/media/christina/Elements/ANNFASS_SOLUTION/proj_style_data/rtsc_in/buildnet/"
@@ -167,6 +166,13 @@ if __name__ == "__main__":
         while True:
             obj_file = f_in.readline().strip()
             if ".obj" in obj_file:
-                convert_obj_to_ply(obj_file, out_path)
+                try:
+                    object_name = obj_file.split(os.sep)[-1][:-4]
+                    output_path = os.path.join(out_path, object_name+"PlainMesh.ply")
+                    if os.path.exists(output_path):
+                        continue
+                    convert_obj_to_ply(obj_file, output_path)
+                except Exception as e:
+                    print("While converting {} the following issue occured so it was skipped:\n{}".format(obj_file, e))
             else:
                 break
