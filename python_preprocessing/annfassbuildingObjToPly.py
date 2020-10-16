@@ -130,7 +130,7 @@ if __name__ == "__main__":
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/29_Lefkaritis Building/29_Lefkaritis Building_01/29_Lefkaritis Building_01.obj"
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_with_style_objs/30_Nicolaou Building/30_Nicolaou Building_01.obj"
     filename = "/media/christina/Elements/ANNFASS_DATA/buildings_without_style_objs/09_Ayios Michael Tripiotis/09_Ayios Michael Tripiotis_01_tri.obj"
-    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_without_style_objs/13_Kyrenia Gate/13_Kyrenia Gate_01_tri.obj"
+    filename = "/media/christina/Elements/ANNFASS_DATA/buildings_without_style_objs/13_Kyrenia Gate/13_Kyrenia Gate_01_tri_sub.obj"
 
     # Read obj
     vertices, faces, face_normals = read_obj(obj_fn=filename)

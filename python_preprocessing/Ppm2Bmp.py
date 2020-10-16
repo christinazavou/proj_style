@@ -18,6 +18,7 @@ for model_name in os.listdir(folder_of_rtsc_out):
     if "Marios" in model_name:
         continue
     mod+=1
+    print("model ", model_name)
     for path in os.listdir(os.path.join(folder_of_rtsc_out, model_name)):
         lines+=1
         ppmimg=os.path.join(folder_of_rtsc_out, model_name, path)
