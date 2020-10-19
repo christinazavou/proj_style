@@ -26,7 +26,7 @@ def clean_scene():
         bpy.data.objects.remove(objvalue, do_unlink=True)
 
 
-def initialize(camera_location):
+def initialize(camera_location, add_light=True):
     empty = bpy.data.objects.new("Empty", None)
     camera = bpy.data.objects.new("Camera", bpy.data.cameras.new("Camera"))
     bpy.context.scene.collection.objects.link(empty)
@@ -36,7 +36,8 @@ def initialize(camera_location):
     #camera.rotation_euler = (0, math.radians(30), math.radians(30))
     camera_constraint = camera.constraints.new('TRACK_TO')
     camera_constraint.target = empty
-    add_lightning()
+    if add_light:
+        add_lightning()
 
 
 def add_lightning():
@@ -75,13 +76,8 @@ def render(name, camera, d=30):
     #scale = renderer.resolution_percentage / 100
     #WIDTH = int(renderer.resolution_x * scale)
     #HEIGHT = int(renderer.resolution_y*scale)
-    renderer.filepath = os.path.join(RENDER_DIR, "{}angle{}.jpg".format(name, d))
+    renderer.filepath = os.path.join(RENDER_DIR, "{}angle{}".format(name, d))
     bpy.ops.render.render(write_still=True)
-
-
-#camera.select_set(True)
-#empty.select_set(True)
-# lamp_object.select = True
 
 
 def multi_view_render(name):
@@ -138,11 +134,44 @@ def render_element(name):
         load_ply(name)
     else:
         raise Exception('{} not supported'.format(name.split('.')[-1]))
-    hide_objects()
-    show_objects(['Door'])
+    # hide_objects()
+    # show_objects(['Door'])
     cam = bpy.data.objects['Camera']
     bpy.context.view_layer.objects.active = cam
     bpy.context.scene.camera = cam
+    render(name, cam, 0)
+
+
+def render_freestyle_on_white_background(name):
+    clean_scene()
+    initialize((5, 5, 1), False)
+    if '.obj' in name:
+        load_obj(name)
+    elif '.ply' in name:
+        load_ply(name)
+    else:
+        raise Exception('{} not supported'.format(name.split('.')[-1]))
+    cam = bpy.data.objects['Camera']
+    bpy.context.view_layer.objects.active = cam
+    bpy.context.scene.camera = cam
+    bpy.context.scene.render.use_freestyle = True
+    # a linestyle can be assigned to any line set
+    freestyle_settings = bpy.context.scene.view_layers["View Layer"].freestyle_settings
+    freestyle_settings.as_render_pass = True
+    # lineset = freestyle_settings.linesets["LineSet"]
+    # lineset.select_border = True
+    # lineset.select_silhouette = True
+    bpy.context.scene.use_nodes = True
+    tree = bpy.data.scenes['Scene'].node_tree
+    l = tree.links[0]
+    tree.links.remove(l)
+    Src = tree.nodes["Render Layers"]
+    alphaover = tree.nodes.new("CompositorNodeAlphaOver")
+    alphaover.inputs[1].default_value = (1, 1, 1, 1)
+    Dst = tree.nodes["Composite"]
+    tree.links.new(Src.outputs["Freestyle"], alphaover.inputs[2])
+    tree.links.new(alphaover.outputs["Image"], Dst.inputs["Image"])
+    bpy.context.scene.render.image_settings.file_format = 'BMP'
     render(name, cam, 0)
 
 
@@ -170,13 +199,15 @@ if __name__ == '__main__':
     else:
         print("using default arguments")
         DATA_DIR = "/media/christina/Data/ANFASS_data/ANNFASS_Buildings/Byzantine architecture/02_Panagia Chrysaliniotissa/"
-        RENDER_DIR = "/media/christina/Data/ANFASS_data/blender_render"
+        DATA_DIR = "/media/christina/Elements/ANNFASS_DATA/buildnet_objs/objects_with_textures/"
+        RENDER_DIR = "/media/christina/Data/ANNFASS_data/blender_render"
         AXIS = 'z'
-        FILENAME = 'Fbx2ObjInBlender.obj'
+        FILENAME = 'RESIDENTIALvilla_mesh3265Marios.ply'
 
     # multi_view_render(FILENAME)
     # bpy.context.space_data.shading.type = 'MATERIAL'
-    render_element(FILENAME)
+    # render_element(FILENAME)
+    render_freestyle_on_white_background(FILENAME)
 
 # export DATADIR /media/christina/Elements/ANNFASS_DATA/objs
 # export RENDERDIR /media/christina/Elements/ANNFASS_data/proj_style_out
@@ -184,5 +215,3 @@ if __name__ == '__main__':
 # blender --background --python preprocess_buildings/MultiCamerasRender.py -- --datadir ${DATADIR} \
 #                                                                             --renderdir ${RENDERDIR} \
 #                                                                             --filename ${FILENAME}
-
-
