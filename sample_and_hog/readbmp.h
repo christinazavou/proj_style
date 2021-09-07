@@ -2,7 +2,8 @@
 #define _READBMP_H
 
 
-#include <gl\glut.h>
+//#include <gl\glut.h>
+#include <GL/glut.h>
 #include <string>
 using namespace std;
 //static GLint    ImageWidth;
@@ -18,51 +19,51 @@ typedef long LONG;
 
 typedef struct mytagBITMAPFILEHEADER
 {
-DWORD bfSize;               
-WORD   bfReserved1; 
-WORD   bfReserved2; 
-DWORD bfOffBits;         
-} myBITMAPFILEHEADER; 
+DWORD bfSize;
+WORD   bfReserved1;
+WORD   bfReserved2;
+DWORD bfOffBits;
+} BITMAPFILEHEADER;
 
 typedef struct mytagBITMAPINFOHEADER{
 
-DWORD   biSize;                  
-LONG    biWidth;        
-LONG    biHeight;       
-WORD    biPlanes;        
-WORD    biBitCount;      
-DWORD   biCompression;          
-DWORD   biSizeImage;            
-LONG    biXPelsPerMeter;  
-LONG    biYPelsPerMeter;   
-DWORD   biClrUsed;                 
-DWORD   biClrImportant;             
-} myBITMAPINFOHEADER; 
+DWORD   biSize;
+LONG    biWidth;
+LONG    biHeight;
+WORD    biPlanes;
+WORD    biBitCount;
+DWORD   biCompression;
+DWORD   biSizeImage;
+LONG    biXPelsPerMeter;
+LONG    biYPelsPerMeter;
+DWORD   biClrUsed;
+DWORD   biClrImportant;
+} BITMAPINFOHEADER;
 
 
-typedef struct mytagRGBQUAD { 
+typedef struct mytagRGBQUAD {
 
-BYTE     rgbBlue; 
-BYTE     rgbGreen; 
-BYTE     rgbRed; 
-//BYTE     rgbReserved; 
+BYTE     rgbBlue;
+BYTE     rgbGreen;
+BYTE     rgbRed;
+//BYTE     rgbReserved;
 } myRGBQUAD;
-typedef struct tagRGBQUAD2 { 
+typedef struct tagRGBQUAD2 {
 
-BYTE     rgbBlue; 
-BYTE     rgbGreen; 
-BYTE     rgbRed; 
-BYTE     rgbReserved; 
+BYTE     rgbBlue;
+BYTE     rgbGreen;
+BYTE     rgbRed;
+BYTE     rgbReserved;
 } RGBQUAD2;
 
-typedef struct BmpImageInfo { 
+typedef struct BmpImageInfo {
 
-myRGBQUAD* dataOfBmp; 
+myRGBQUAD* dataOfBmp;
 GLint width;
 GLint height;
 GLint depth;
 } BmpImage;
-typedef struct BlackPatchindex { 
+typedef struct BlackPatchindex {
 
 GLfloat x1;
 GLfloat y1;

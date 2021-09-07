@@ -1,4 +1,11 @@
 #include "FileZ.h"
+#include <unistd.h>
+#include <cstring>
+#include <dirent.h>
+#include <sys/io.h>
+#include <sys/types.h>
+
+static constexpr const char* PATH_SEP = "/";
 
 FileZ::FileZ()
 {
@@ -15,7 +22,7 @@ FileZ::FileZ(string name, string type, bool subdir)
 
 bool FileZ::isExist()
 {
-	if ((_access(this->name.c_str(), 0)) != -1)
+	if ((access(this->name.c_str(), F_OK)) != -1)
 	{
 		return true;
 		/* Check for write permission */
@@ -30,35 +37,35 @@ bool FileZ::isExist()
 void FileZ::getFiles(string name)
 {
 	intptr_t   hFile = 0;
-	struct _finddata_t fileinfo;
 	string p;
 
-	if ((hFile = _findfirst(p.assign(name).append("\\*").c_str(), &fileinfo)) != -1)
-	{
-		do
-		{
-			if ((fileinfo.attrib &  _A_SUBDIR) && subdir)
-			{
-				if (strcmp(fileinfo.name, ".") != 0 && strcmp(fileinfo.name, "..") != 0)
-					getFiles(p.assign(name).append("\\").append(fileinfo.name));
-			}
-			else
-			{
-				string itype(fileinfo.name);
-				itype = itype.substr(itype.find_first_of('.') + 1);
-				if (this->type.empty() || !itype.compare(this->type))
-				{
-					Info info;
-					info.directory = name;
-					info.file = fileinfo.name;
-					info.path = name + "\\" + fileinfo.name;
-					info.name = info.file.substr(0, info.file.find_first_of("."));
-					this->files.push_back(info);
-				}
-			}
-		} while (_findnext(hFile, &fileinfo) == 0);
-		_findclose(hFile);
-	}
+    DIR* dirFile = opendir(name.c_str());
+    if ( dirFile )
+    {
+        struct dirent* hFile;
+        errno = 0;
+        while (( hFile = readdir( dirFile )) != NULL )
+        {
+            if ( !strcmp( hFile->d_name, "."  )) continue;
+            if ( !strcmp( hFile->d_name, ".." )) continue;
+
+            // in linux hidden files all start with '.'
+            if ( hFile->d_name[0] == '.' ) continue;
+
+            // dirFile.name is the name of the file. Do whatever string comparison
+            // you want here. Something like:
+            if ( strstr( hFile->d_name, ".obj" )){
+                cout << "found an .obj file " << hFile->d_name << endl;
+                Info info;
+                info.directory = name;
+                info.file = hFile->d_name;
+                info.path = name + PATH_SEP + hFile->d_name;
+                info.name = info.file.substr(0, info.file.find_first_of("."));
+                this->files.push_back(info);
+            }
+        }
+        closedir( dirFile );
+    }
 }
 
 void FileZ::getFiles()

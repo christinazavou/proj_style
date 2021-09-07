@@ -1,10 +1,15 @@
 #include "readbmp.h"
-#include "math.h"  
-#include "stdio.h"
-#include "stdlib.h"   
+//#include "math.h"
+#include <cmath>
+//#include "stdio.h"
+#include <cstdio>
+//#include "stdlib.h"
+#include <cstdlib>
 #include "malloc.h"
 #include <fstream>
 #include <iostream>
+//#include "string.h"
+#include <cstring>
 using namespace std;
 
 Patch* getpatch(unsigned char *bitmapData, int width, int height)
@@ -85,9 +90,9 @@ BmpImage* imcrop(BmpImage* image, int x, int y, int size)
 BmpImage* readbmp(string Filename)
 {
 
-	// ´ò¿ªÎÄ¼þ
-	myBITMAPFILEHEADER  bitHead;
-	myBITMAPINFOHEADER bitInfoHead;
+	// ï¿½ï¿½ï¿½Ä¼ï¿½
+	BITMAPFILEHEADER  bitHead;
+	BITMAPINFOHEADER bitInfoHead;
 	FILE* pfile = fopen(Filename.data(), "rb");
 	if (pfile == 0)
 	{
@@ -99,24 +104,24 @@ BmpImage* readbmp(string Filename)
 	fread(&fileType, 1, sizeof(WORD), pfile);
 	if (fileType != 0x4d42)
 	{
-		cout << "Õâ²»ÊÇbmp¸ñÊ½µÄÎÄ¼þ!";
+		cout << "ï¿½â²»ï¿½ï¿½bmpï¿½ï¿½Ê½ï¿½ï¿½ï¿½Ä¼ï¿½!";
 		return 0;
 	}
 
-	fread(&bitHead, sizeof(myBITMAPFILEHEADER), 1, pfile);
+	fread(&bitHead, sizeof(BITMAPFILEHEADER), 1, pfile);
 	//showBmpHead(&bitHead);
 	//cout<<endl<<endl;
 
-	//¶ÁÈ¡Î»Í¼ÐÅÏ¢Í·ÐÅÏ¢
-	fread(&bitInfoHead, sizeof(myBITMAPINFOHEADER), 1, pfile);
+	//ï¿½ï¿½È¡Î»Í¼ï¿½ï¿½Ï¢Í·ï¿½ï¿½Ï¢
+	fread(&bitInfoHead, sizeof(BITMAPINFOHEADER), 1, pfile);
 	//showBmpInforHead(&bitInfoHead);
 	//cout<<endl;
 
 	tagRGBQUAD2 *pRgb = new tagRGBQUAD2[0];
 	long nPlantNum;
-	if (bitInfoHead.biBitCount < 24)//ÓÐµ÷É«°å
+	if (bitInfoHead.biBitCount < 24)//ï¿½Ðµï¿½É«ï¿½ï¿½
 	{
-		//¶ÁÈ¡µ÷É«ÅÌ½áÐÅÏ¢
+		//ï¿½ï¿½È¡ï¿½ï¿½É«ï¿½Ì½ï¿½ï¿½ï¿½Ï¢
 		nPlantNum = long(pow(2, double(bitInfoHead.biBitCount)));    //   Mix color Plant Number;
 		pRgb = new tagRGBQUAD2[nPlantNum*sizeof(tagRGBQUAD2)];
 		memset(pRgb, 0, nPlantNum*sizeof(tagRGBQUAD2));
@@ -124,7 +129,7 @@ BmpImage* readbmp(string Filename)
 
 		/*cout<<"Color Plate Number: "<<nPlantNum<<endl;
 
-		cout<<"ÑÕÉ«°åÐÅÏ¢:"<<endl;
+		cout<<"ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½Ï¢:"<<endl;
 		for (int i =0; i<nPlantNum;i++)
 		{
 		if (i%5==0)          {cout<<endl;}
@@ -139,21 +144,21 @@ BmpImage* readbmp(string Filename)
 	int height = bitInfoHead.biHeight;
 	image->width = width;
 	image->height = height;
-	//·ÖÅäÄÚ´æ¿Õ¼ä°ÑÔ´Í¼´æÈëÄÚ´æ   
-	int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);//¼ÆËãÎ»Í¼µÄÊµ¼Ê¿í¶È²¢È·±£ËüÎª32µÄ±¶Êý
+	//ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½Õ¼ï¿½ï¿½Ô´Í¼ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½   
+	int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);//ï¿½ï¿½ï¿½ï¿½Î»Í¼ï¿½ï¿½Êµï¿½Ê¿ï¿½È²ï¿½È·ï¿½ï¿½ï¿½ï¿½Îª32ï¿½Ä±ï¿½ï¿½ï¿½
 	BYTE    *pColorData = new BYTE[height*l_width];
 	memset(pColorData, 0, height*l_width);
 	long nData = height*l_width;
 
-	//°ÑÎ»Í¼Êý¾ÝÐÅÏ¢¶Áµ½Êý×éÀï   
+	//ï¿½ï¿½Î»Í¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½   
 	fread(pColorData, 1, nData, pfile);
 
-	//½«Î»Í¼Êý¾Ý×ª»¯ÎªRGBÊý¾Ý
+	//ï¿½ï¿½Î»Í¼ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ÎªRGBï¿½ï¿½ï¿½ï¿½
 	mytagRGBQUAD* dataOfBmp;
-	dataOfBmp = new mytagRGBQUAD[width*height*sizeof(mytagRGBQUAD)];//ÓÃÓÚ±£´æ¸÷ÏñËØ¶ÔÓ¦µÄRGBÊý¾Ý
+	dataOfBmp = new mytagRGBQUAD[width*height*sizeof(mytagRGBQUAD)];//ï¿½ï¿½ï¿½Ú±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø¶ï¿½Ó¦ï¿½ï¿½RGBï¿½ï¿½ï¿½ï¿½
 	memset(dataOfBmp, 0, width*height*sizeof(mytagRGBQUAD));
 
-	if (bitInfoHead.biBitCount < 24)//ÓÐµ÷É«°å£¬¼´Î»Í¼Îª·ÇÕæ²ÊÉ« 
+	if (bitInfoHead.biBitCount < 24)//ï¿½Ðµï¿½É«ï¿½å£¬ï¿½ï¿½Î»Í¼Îªï¿½ï¿½ï¿½ï¿½ï¿½É« 
 	{
 		int k;
 		int index = 0;
@@ -164,8 +169,8 @@ BmpImage* readbmp(string Filename)
 				for (int j = 0; j < width; j++)
 				{
 					BYTE mixIndex = 0;
-					k = i*l_width + j / 8;//k:È¡µÃ¸ÃÏñËØÑÕÉ«Êý¾ÝÔÚÊµ¼ÊÊý¾ÝÊý×éÖÐµÄÐòºÅ
-					//j:ÌáÈ¡µ±Ç°ÏñËØµÄÑÕÉ«µÄ¾ßÌåÖµ    
+					k = i*l_width + j / 8;//k:È¡ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½
+					//j:ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½É«ï¿½Ä¾ï¿½ï¿½ï¿½Öµ    
 					mixIndex = pColorData[k];
 					switch (j % 8)
 					{
@@ -195,7 +200,7 @@ BmpImage* readbmp(string Filename)
 						break;
 					}
 
-					//½«ÏñËØÊý¾Ý±£´æµ½Êý×éÖÐ¶ÔÓ¦µÄÎ»ÖÃ
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½Ó¦ï¿½ï¿½Î»ï¿½ï¿½
 					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
 					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
 					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
@@ -211,8 +216,8 @@ BmpImage* readbmp(string Filename)
 				for (int j = 0; j < width; j++)
 				{
 					BYTE mixIndex = 0;
-					k = i*l_width + j / 4;//k:È¡µÃ¸ÃÏñËØÑÕÉ«Êý¾ÝÔÚÊµ¼ÊÊý¾ÝÊý×éÖÐµÄÐòºÅ
-					//j:ÌáÈ¡µ±Ç°ÏñËØµÄÑÕÉ«µÄ¾ßÌåÖµ    
+					k = i*l_width + j / 4;//k:È¡ï¿½Ã¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½ï¿½ï¿½ï¿½
+					//j:ï¿½ï¿½È¡ï¿½ï¿½Ç°ï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½É«ï¿½Ä¾ï¿½ï¿½ï¿½Öµ    
 					mixIndex = pColorData[k];
 					switch (j % 4)
 					{
@@ -230,7 +235,7 @@ BmpImage* readbmp(string Filename)
 						break;
 					}
 
-					//½«ÏñËØÊý¾Ý±£´æµ½Êý×éÖÐ¶ÔÓ¦µÄÎ»ÖÃ
+					//ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ý±ï¿½ï¿½æµ½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½Ó¦ï¿½ï¿½Î»ï¿½ï¿½
 					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
 					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
 					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
@@ -248,11 +253,11 @@ BmpImage* readbmp(string Filename)
 					k = i*l_width + j / 2;
 					mixIndex = pColorData[k];
 					if (j % 2 == 0)
-					{//µÍ      
+					{//ï¿½ï¿½      
 						mixIndex = mixIndex;
 					}
 					else
-					{//¸ß
+					{//ï¿½ï¿½
 						mixIndex = mixIndex >> 4;
 					}
 
@@ -303,7 +308,7 @@ BmpImage* readbmp(string Filename)
 				}
 		}
 	}
-	else//Î»Í¼Îª24Î»Õæ²ÊÉ«
+	else//Î»Í¼Îª24Î»ï¿½ï¿½ï¿½É«
 	{
 		image->depth = 24;
 		int k;
@@ -318,7 +323,7 @@ BmpImage* readbmp(string Filename)
 				index++;
 			}
 	}
-	//    cout<<"ÏñËØÊý¾ÝÐÅÏ¢:"<<endl;
+	//    cout<<"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï¢:"<<endl;
 	//	for (int i=0; i<width*height; i++)
 	//{
 	//	if (dataOfBmp[i].rgbRed != 255)
@@ -334,7 +339,7 @@ BmpImage* readbmp(string Filename)
 	//   if (i%width==0)     cout<<"*";
 	//   showRgbQuan(&dataOfBmp[i]);
 	//}
-	// ³õÊ¼»¯GLUT²¢ÔËÐÐ
+	// ï¿½ï¿½Ê¼ï¿½ï¿½GLUTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	//glutInit(&argc, argv);
 	//glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	//glutInitWindowPosition(100, 100);
@@ -342,10 +347,10 @@ BmpImage* readbmp(string Filename)
 	//glutCreateWindow("opengl");
 	//glutDisplayFunc(&display);
 	//glutMainLoop();
-	// ÊÍ·ÅÄÚ´æ
-	// Êµ¼ÊÉÏ£¬glutMainLoopº¯ÊýÓÀÔ¶²»»á·µ»Ø£¬ÕâÀïÒ²ÓÀÔ¶²»»áµ½´ï
-	// ÕâÀïÐ´ÊÍ·ÅÄÚ´æÖ»ÊÇ³öÓÚÒ»ÖÖ¸öÈËÏ°¹ß
-	// ²»ÓÃµ£ÐÄÄÚ´æÎÞ·¨ÊÍ·Å¡£ÔÚ³ÌÐò½áÊøÊ±²Ù×÷ÏµÍ³»á×Ô¶¯»ØÊÕËùÓÐÄÚ´æ
+	// ï¿½Í·ï¿½ï¿½Ú´ï¿½
+	// Êµï¿½ï¿½ï¿½Ï£ï¿½glutMainLoopï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½á·µï¿½Ø£ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½áµ½ï¿½ï¿½
+	// ï¿½ï¿½ï¿½ï¿½Ð´ï¿½Í·ï¿½ï¿½Ú´ï¿½Ö»ï¿½Ç³ï¿½ï¿½ï¿½Ò»ï¿½Ö¸ï¿½ï¿½ï¿½Ï°ï¿½ï¿½
+	// ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Þ·ï¿½ï¿½Í·Å¡ï¿½ï¿½Ú³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ÏµÍ³ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú´ï¿½
 	fclose(pfile);
 	image->dataOfBmp = dataOfBmp;
 	if (bitInfoHead.biBitCount < 24)

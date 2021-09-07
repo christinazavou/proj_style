@@ -2,14 +2,15 @@
 #define _MODEL_H
 
 
-#include <gl\glut.h>
+//#include <gl\glut.h>
+#include <GL/glut.h>
 //#include "CommonZ.h"
 #include <string>
 
 #ifndef M_PI
 #define M_PI 3.14159265f
 #endif
-#define COLOR "blue"
+//#define COLOR "blue"
 
 #define GLM_NONE                    (0)					/* render with only vertices */
 #define GLM_FLAT                      (1 << 0)			/* render with facet normals */

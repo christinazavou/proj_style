@@ -1,12 +1,19 @@
 #include <fstream>
 #include <iostream>
 #include "model.h"
-#include "math.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-#include "assert.h"
+//#include "math.h"
+#include <cmath>
+//#include "stdio.h"
+#include <cstdio>
+//#include "stdlib.h"
+//#include <cstdlib>
+//#include "string.h"
+#include <cstring>
+//#include "assert.h"
+#include <cassert>
 //#include "CommonZ.h"
+#include <GL/glu.h>
+#include <GL/glut.h>
 
 using namespace std;
 
@@ -113,7 +120,7 @@ GLMgroup *glmAddGroup(GLMmodel * model, char *name)
 	if (!group) {
 		group = new GLMgroup;
 		//group = (GLMgroup *)malloc(sizeof(GLMgroup));
-		group->name = _strdup(name);
+		group->name = strdup(name);
 		group->material = 0;
 		group->numtriangles = 0;
 		group->triangles = NULL;//empty group
@@ -159,7 +166,7 @@ static char *glmDirName(char *path)
 	char *dir;
 	char *s;
 
-	dir = _strdup(path);
+	dir = strdup(path);
 
 	s = strrchr(dir, '\\');
 	if (s)
@@ -246,7 +253,7 @@ static GLvoid glmReadMTL(GLMmodel * model, char *name)
 		model->materials[i].specular[2] = 0.0;
 		model->materials[i].specular[3] = 1.0;
 	}
-	model->materials[0].name = _strdup("default");
+	model->materials[0].name = strdup("default");
 
 	/* now, read in the data */
 	nummaterials = 0;
@@ -260,7 +267,7 @@ static GLvoid glmReadMTL(GLMmodel * model, char *name)
 			fgets(buf, sizeof(buf), file);
 			sscanf(buf, "%s %s", buf, buf);
 			nummaterials++;
-			model->materials[nummaterials].name = _strdup(buf);
+			model->materials[nummaterials].name = strdup(buf);
 			break;
 		case 'N':
 			fscanf(file, "%f", &model->materials[nummaterials].shininess);
@@ -430,7 +437,7 @@ static GLvoid glmFirstPass(GLMmodel * model, FILE * file)
 		case 'm':
 			fgets(buf, sizeof(buf), file);
 			sscanf(buf, "%s %s", buf, buf);
-			model->mtllibname = _strdup(buf);
+			model->mtllibname = strdup(buf);
 //			glmReadMTL(model, buf);
 			break;
 		case 'u':
@@ -1138,7 +1145,7 @@ GLMmodel *glmReadOBJ(char *filename)
 
 	/* allocate a new model */
 	model = (GLMmodel *)malloc(sizeof(GLMmodel));
-	model->pathname = _strdup(filename);
+	model->pathname = strdup(filename);
 	model->seed_current = 0;
 
 	model->mtllibname = NULL;
@@ -1346,7 +1353,8 @@ GLvoid glmWriteOBJ(GLMmodel * model, char *filename, GLuint mode)
 	while (group) {
 		fprintf(file, "g %s\n", group->name);
 		
-			fprintf(file, "usemtl %s\n",COLOR);
+//			fprintf(file, "usemtl %s\n",COLOR);
+			fprintf(file, "usemtl %s\n","blue");
 		for (i = 0; i < group->numtriangles; i++) {
 			if (mode & GLM_SMOOTH && mode & GLM_TEXTURE) {
 				fprintf(file, "f %d/%d/%d %d/%d/%d %d/%d/%d\n",

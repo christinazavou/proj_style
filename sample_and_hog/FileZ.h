@@ -6,9 +6,6 @@
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include "io.h"
-#include "direct.h"
-//#include "CommonZ.h"
 
 using namespace std;
 

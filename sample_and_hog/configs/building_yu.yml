@@ -1,0 +1,11 @@
+projection_path: /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_yu/3dlines
+patch_path:      /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_yu/patch
+model_path:      /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_yu/models
+seed_path        /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_yu/sample_points
+seed_num:        30
+view_num:        12
+patch_size:      48
+radius:          0.15
+black_begin:     0
+model_begin:     0
+seed_exist:      0
