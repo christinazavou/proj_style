@@ -101,7 +101,7 @@ BmpImage* readbmp(string Filename)
 		exit(2);
 	}
 	WORD fileType;
-	fread(&fileType, 1, sizeof(WORD), pfile);
+	fread(&fileType, sizeof(WORD), 1, pfile);
 	if (fileType != 0x4d42)
 	{
 		cout << "�ⲻ��bmp��ʽ���ļ�!";
@@ -145,7 +145,7 @@ BmpImage* readbmp(string Filename)
 	image->width = width;
 	image->height = height;
 	//�����ڴ�ռ��Դͼ�����ڴ�   
-	int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);//����λͼ��ʵ�ʿ�Ȳ�ȷ����Ϊ32�ı���
+	int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);// row size = (bits per pixel * image width + 31)/32*4
 	BYTE    *pColorData = new BYTE[height*l_width];
 	memset(pColorData, 0, height*l_width);
 	long nData = height*l_width;

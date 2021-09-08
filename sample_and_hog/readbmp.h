@@ -10,7 +10,7 @@ using namespace std;
 //static GLint    ImageHeight;
 //static GLint    PixelLength;
 //static GLubyte* PixelData;
-#define   WIDTHBYTES(bits) (((bits)+31)/32*4)
+#define   WIDTHBYTES(bits) (((bits)+31)/32*4)  // row size = (bits per pixel * image width + 31)/32*4
 
 typedef unsigned char BYTE;
 typedef unsigned short WORD;
@@ -19,25 +19,25 @@ typedef long LONG;
 
 typedef struct mytagBITMAPFILEHEADER
 {
-DWORD bfSize;
-WORD   bfReserved1;
-WORD   bfReserved2;
-DWORD bfOffBits;
+uint32_t bfSize;
+ushort  bfReserved1;
+ushort  bfReserved2;
+uint32_t bfOffBits;
 } BITMAPFILEHEADER;
 
 typedef struct mytagBITMAPINFOHEADER{
 
-DWORD   biSize;
-LONG    biWidth;
-LONG    biHeight;
-WORD    biPlanes;
-WORD    biBitCount;
-DWORD   biCompression;
-DWORD   biSizeImage;
-LONG    biXPelsPerMeter;
-LONG    biYPelsPerMeter;
-DWORD   biClrUsed;
-DWORD   biClrImportant;
+uint32_t  biSize;
+int32_t   biWidth;
+int32_t    biHeight;
+ushort   biPlanes;
+ushort    biBitCount;
+uint32_t   biCompression;
+uint32_t   biSizeImage;
+int32_t    biXPelsPerMeter;
+int32_t    biYPelsPerMeter;
+uint32_t   biClrUsed;
+uint32_t   biClrImportant;
 } BITMAPINFOHEADER;
 
 
