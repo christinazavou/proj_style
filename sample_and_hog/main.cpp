@@ -243,12 +243,12 @@ void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
         //string index_seed(seed_index);
 
         string patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
-                            to_string((long double)model_current + 1 + model_begin) + "_" +
-                            to_string((long double)model->seed_current + 1) + ".bmp";
+                            to_string(model_current + 1 + model_begin) + "_" +
+                            to_string(model->seed_current + 1) + ".bmp";
 
         patch_file = patch_path + PATH_SEP + std::to_string(view_current) + PATH_SEP +
-                     to_string((long double)model_current + 1 + model_begin) + "_" +
-                     to_string((long double)model->seed_current + 1) + ".txt";
+                     to_string(model_current + 1 + model_begin) + "_" +
+                     to_string(model->seed_current + 1) + ".txt";
 
         Mat M(patch_size, patch_size, CV_8UC3, (unsigned char*)blackpatch->dataOfBmp);
 
