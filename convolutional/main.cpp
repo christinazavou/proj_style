@@ -1,6 +1,5 @@
 /* use kernel to convolute the bounding box of all images*/
 
-#include <direct.h>
 #include<iostream>
 #include <time.h>
 #include <fstream>
@@ -17,6 +16,7 @@ string curpath;
 string user_name;
 string user_name_File;
 string order_data;
+string os_sep="/";
 
 IplImage* jiabian(IplImage* image, int zd)
 {
@@ -36,8 +36,9 @@ IplImage* jiabian(IplImage* image, int zd)
 		{
 			copyMakeBorder(img, imgtemp, 0, zd - rows, 0, 0, BORDER_CONSTANT, Scalar(255));
 			CvSize imgsize=cvSize(imgtemp.cols,imgtemp.rows);
-			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels); 
-			cvCopy(&IplImage(imgtemp),imgtemp_1);
+			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels);
+            const IplImage* srcimg = new IplImage(imgtemp);
+			cvCopy(srcimg,imgtemp_1);
 			cvReleaseImage(&image);
 			return  imgtemp_1;
 		}
@@ -45,8 +46,9 @@ IplImage* jiabian(IplImage* image, int zd)
 		{
 			copyMakeBorder(img, imgtemp, 0, 0, 0, zd-cols, BORDER_CONSTANT, Scalar(255));
 			CvSize imgsize=cvSize(imgtemp.cols,imgtemp.rows);
-			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels); 
-			cvCopy(&IplImage(imgtemp),imgtemp_1);
+			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels);
+            const IplImage* srcimg = new IplImage(imgtemp);
+			cvCopy(srcimg,imgtemp_1);
 			cvReleaseImage(&image);
 			return  imgtemp_1;
 		}
@@ -56,8 +58,9 @@ IplImage* jiabian(IplImage* image, int zd)
 		{
 			copyMakeBorder(img, imgtemp, 0, zd - rows, 0, 0, BORDER_CONSTANT, Scalar(255,255,255));
 			CvSize imgsize=cvSize(imgtemp.cols,imgtemp.rows);
-			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels); 
-			cvCopy(&IplImage(imgtemp),imgtemp_1);
+			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels);
+            const IplImage* srcimg = new IplImage(imgtemp);
+			cvCopy(srcimg,imgtemp_1);
 			cvReleaseImage(&image);
 			return  imgtemp_1;
 		}
@@ -65,8 +68,9 @@ IplImage* jiabian(IplImage* image, int zd)
 		{
 			copyMakeBorder(img, imgtemp, 0, 0, 0, zd-cols, BORDER_CONSTANT,  Scalar(255,255,255));
 			CvSize imgsize=cvSize(imgtemp.cols,imgtemp.rows);
-			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels); 
-			cvCopy(&IplImage(imgtemp),imgtemp_1);
+			IplImage* imgtemp_1=cvCreateImage(imgsize, image->depth, image->nChannels);
+            const IplImage* srcimg = new IplImage(imgtemp);
+			cvCopy(srcimg,imgtemp_1);
 			cvReleaseImage(&image);
 			return  imgtemp_1;
 		}
@@ -103,13 +107,13 @@ int CL(const char *filename){
 typedef vector<float>* Vrq;
 int level_main(int clan,string *curpath){
 
-	string imagePath = *curpath + "\\3dlines\\";
+	string imagePath = *curpath + os_sep + "3dlines" + os_sep;
 
-	string imagenameFile = *curpath + "\\imagesname\\picname";
-	imagenameFile=imagenameFile+std::to_string(long double(clan))+".txt";
+	string imagenameFile = *curpath + os_sep + "imagesname" + os_sep + "picname";
+	imagenameFile=imagenameFile+std::to_string(clan)+".txt";
 	int imagenum = CL(imagenameFile.c_str());
 
-	string patchPath = *curpath+"\\kernel\\"+std::to_string((long double)clan)+"\\";
+	string patchPath = *curpath+os_sep+"kernel"+os_sep+std::to_string(clan)+os_sep;
 	string patchnameFile=patchPath+"Apidfpatchname.txt";
 	int patchnum=CL(patchnameFile.c_str());
 
@@ -125,7 +129,9 @@ int level_main(int clan,string *curpath){
 
 		string imagename;
 		getline(finimagename,imagename);
-		allimagename[i_0]=imagename;
+        imagename.erase(std::remove(imagename.begin(), imagename.end(), '\n'), imagename.end());
+        imagename.erase(std::remove(imagename.begin(), imagename.end(), '\r'), imagename.end());
+        allimagename[i_0]=imagename;
 	}
 	finimagename.close();
 	
@@ -178,7 +184,9 @@ int level_main(int clan,string *curpath){
 
 			string patchname;
 			getline(finpatchname,patchname);
-			string patchfile=patchPath+patchname;		    
+            patchname.erase(std::remove(patchname.begin(), patchname.end(), '\n'), patchname.end());
+            patchname.erase(std::remove(patchname.begin(), patchname.end(), '\r'), patchname.end());
+			string patchfile=patchPath+patchname;
 			IplImage* patch = cvLoadImage( patchfile.c_str(), 0 );
 
 			vector<float>czpathHOG;
@@ -301,10 +309,10 @@ void initialize(string params)
 	ifs.close();
 }
 
-void main(int argv, char* args[]){
+int main(int argv, char* args[]){
 	
 	if(argv < 2)
-		return;
+		return 1;
 	string params = args[1];
 	initialize(params);
 

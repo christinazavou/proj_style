@@ -2,7 +2,7 @@
 Data ?= building_yu
 ThisDir ?= /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style
 SampleAndHogExe ?= $(ThisDir)/sample_and_hog/cmake-build-debug/SampleAndHog
-ConvolutionalExe ?= $(ThisDir)/Convolutional/cmake-build-debug/Convolutional
+ConvolutionalExe ?= $(ThisDir)/convolutional/cmake-build-debug/Convolutional
 
 #build:
 #	build sample_and_hog
@@ -45,4 +45,4 @@ step2:
 step3:
 	chmod 777 $(ConvolutionalExe) \
     		&& chmod 777 $(ThisDir)/data/$(Data)/* \
-    		&& $(ConvolutionalExe) "$(ThisDir)/Convolutional/configs/$(Data).yml"
+    		&& $(ConvolutionalExe) "$(ThisDir)/convolutional/configs/$(Data).yml"
