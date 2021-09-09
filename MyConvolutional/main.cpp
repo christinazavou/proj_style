@@ -129,7 +129,9 @@ int level_main(int clan,string *curpath){
 
 		string imagename;
 		getline(finimagename,imagename);
-		allimagename[i_0]=imagename;
+        imagename.erase(std::remove(imagename.begin(), imagename.end(), '\n'), imagename.end());
+        imagename.erase(std::remove(imagename.begin(), imagename.end(), '\r'), imagename.end());
+        allimagename[i_0]=imagename;
 	}
 	finimagename.close();
 	
@@ -182,7 +184,9 @@ int level_main(int clan,string *curpath){
 
 			string patchname;
 			getline(finpatchname,patchname);
-			string patchfile=patchPath+patchname;		    
+            patchname.erase(std::remove(patchname.begin(), patchname.end(), '\n'), patchname.end());
+            patchname.erase(std::remove(patchname.begin(), patchname.end(), '\r'), patchname.end());
+			string patchfile=patchPath+patchname;
 			IplImage* patch = cvLoadImage( patchfile.c_str(), 0 );
 
 			vector<float>czpathHOG;
