@@ -10,4 +10,5 @@
 #      -D CMAKE_BUILD_TYPE=RELEASE \
 #      -D CMAKE_INSTALL_PREFIX=/usr/local \
 #      -D OPENCV_EXTRA_MODULES_PATH=/opt/opencv_contrib-4.5.3/modules /opt/opencv-4.5.3/
-#make -j4
+#make -j4  # compile
+#make install  # puts executables in installation paths (first compiles if not compiled)
