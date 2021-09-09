@@ -11,6 +11,9 @@ function []=run_CT(views,models,sample_size,HOG_Path,patch_Path)
         V=[];
         CT=[];
         curpath=fullfile(patch_Path,num2str(viewsi));
+        vname=fullfile(HOG_Path,sprintf('V-%d.mat',viewsi));
+        if isfile(vname)
+            continue;
         for i=1:models
             for j=1:sample_size
                 tPath=sprintf('%d_%d.txt',i,j);
@@ -35,7 +38,6 @@ function []=run_CT(views,models,sample_size,HOG_Path,patch_Path)
             end
             fprintf('view:%d  model:%d\n',viewsi, i);
         end
-        vname=fullfile(HOG_Path,sprintf('V-%d.mat',viewsi));
         save(vname,'V','CT');
         fprintf('%d\n', viewsi);
     end
