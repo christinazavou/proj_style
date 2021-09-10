@@ -3,6 +3,7 @@ Data ?= building_yu
 ThisDir ?= /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style
 SampleAndHogExe ?= $(ThisDir)/sample_and_hog/cmake-build-debug/SampleAndHog
 ConvolutionalExe ?= $(ThisDir)/convolutional/cmake-build-debug/Convolutional
+BackProjectExe ?= $(ThisDir)/Back_projected/cmake-build-debug/BackProjected
 
 #build:
 #	build sample_and_hog
@@ -72,10 +73,17 @@ step3:
 #
 # 			(and so in the next iteration U has arbitrary amount of features x 50 per view)
 # 	runs the "style_localization"
-#		for each view: we get
+#		for each view: ...
+#		outputs a file style_index.txt in folder style_patch, where it seems like each model has two of its
+#		30 patches sampled initially picked as style-patches (probably the ones closer to clusters)
 step4:
 	cd $(ThisDir) \
 		&& matlab -nodesktop -nosplash -r "Complete_run('$(Data)',0);exit"
 
-
+#	reads the model obj file, and its accompanied seeds (of the 30 patches), and the style_index.txt created
+#	in previous step, and colors the style patches and outputs all views..
+#	takes ~10 min for 329 models
 step5:
+	chmod 777 $(BackProjectExe) \
+    		&& chmod 777 $(ThisDir)/data/$(Data)/* \
+    		&& $(BackProjectExe) "$(ThisDir)/Back_projected/configs/$(Data).yml"

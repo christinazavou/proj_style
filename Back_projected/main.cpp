@@ -32,6 +32,16 @@ clock_t start;
 clock_t finish;
 
 
+void stripExtension(std::string &path, std::string &ext)
+{
+    int dot = path.rfind(ext);
+    if (dot != std::string::npos)
+    {
+        path.resize(dot);
+    }
+}
+
+
 //Sampling seeds
 void setseed_and_style(string filename)
 {
@@ -71,6 +81,11 @@ void setseed_and_style(string filename)
 
 	while (getline(stylefile, imagename))
 	{
+        string ext = "\r";
+        stripExtension(imagename, ext);
+        ext = "\n";
+        stripExtension(imagename, ext);
+
 		int pos = imagename.find('_', 0);
 		string s_m_index = imagename.substr(0, pos);
 		int m_index = atoi(s_m_index.data()) - 1;
@@ -184,7 +199,7 @@ void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)
 	int view_current = angle / 30 + 1;
 
 	string
-		filename2 = back_projection_path + "\\" +
+		filename2 = back_projection_path + "/" +
 		std::to_string(model_current + 1) + "_" +
 		std::to_string(model->seed_current + 1) + "_" +
 		std::to_string(view_current) + ".bmp";
@@ -301,11 +316,11 @@ void render()
 	{
 		start = clock();
 		model = glmReadOBJ(const_cast<char *>(fz.files[model_current].path.c_str()));
-		int pos = fz.files[model_current].path.find_last_of('\\');
+		int pos = fz.files[model_current].path.find_last_of('/');
 		int length = fz.files[model_current].path.length();
-		string seed_filename = seed_path + "\\" + fz.files[model_current].path.substr(pos + 1, length - 5 - pos) + ".off";
+		string seed_filename = seed_path + "/" + fz.files[model_current].path.substr(pos + 1, length - 5 - pos) + ".off";
 		setseed_and_style(seed_filename);
-		isincube();
+		isincube();  // colors the area within radius-circled of seed
 		for (int i = 0; i < 30; i++)
 		{
 			for (GLfloat angle = 30; angle < angle_threshold; angle = angle + 30)

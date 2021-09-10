@@ -162,7 +162,7 @@ static char *glmDirName(char *path)
 
 	dir = strdup(path);
 
-	s = strrchr(dir, '\\');
+	s = strrchr(dir, '/');
 	if (s)
 		s[1] = '\0';
 	else
