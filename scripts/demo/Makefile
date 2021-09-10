@@ -42,7 +42,19 @@ step2:
 
 # convolution
 #	creates ".txt" files for each ".bmp" file in "3dlines" folder
+#		uses again HOG calculation with same parameters (patch size 48, block size 16, block stride 8, n_bins 9==>dim 900)
+#		each image (model) is representation by matrix VM with size (height-patch_size+1, width-patch_size+1, 900)
+# 		i.e. stores a HOG for each possible patch (centered around each pixel, without padding)
+#		then it basically uses max pooling to output 5 values per patch-kernel for each image, and outputs this
+# 		(250 dim) representation in the .txt file
+# 		takes ~ 8 hours to process one view for 329 (building) models
 step3:
 	chmod 777 $(ConvolutionalExe) \
     		&& chmod 777 $(ThisDir)/data/$(Data)/* \
     		&& $(ConvolutionalExe) "$(ThisDir)/convolutional/configs/$(Data).yml"
+
+
+step4:
+	cd $(ThisDir) \
+		&& matlab -nodesktop -nosplash -r "Complete_run('$(Data)',0);exit"
+

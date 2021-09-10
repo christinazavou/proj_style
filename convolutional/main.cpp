@@ -106,15 +106,18 @@ int CL(const char *filename){
 }
 typedef vector<float>* Vrq;
 int level_main(int clan,string *curpath){
+    // clan is the view
 
 	string imagePath = *curpath + os_sep + "3dlines" + os_sep;
 
 	string imagenameFile = *curpath + os_sep + "imagesname" + os_sep + "picname";
 	imagenameFile=imagenameFile+std::to_string(clan)+".txt";
+    // imagenum shows how many models exist with this view
 	int imagenum = CL(imagenameFile.c_str());
 
 	string patchPath = *curpath+os_sep+"kernel"+os_sep+std::to_string(clan)+os_sep;
 	string patchnameFile=patchPath+"Apidfpatchname.txt";
+    // patchnum shows how many patches exist in the clustering of the current view (i.e. how many cluster centers or "kernels")
 	int patchnum=CL(patchnameFile.c_str());
 
 	int size_hog=48;
@@ -161,7 +164,9 @@ int level_main(int clan,string *curpath){
 		for (int m = 0; m < rows; m+=step)
 		{
 			for (int n = 0; n < cols; n+=step)
-			{	
+			{
+                // basically pixel [n,m] is the center of the patch (selection of image)
+                // this is why we loop starting from row 0 and we end up to row height-patch_size+1
 				cvSetImageROI(image,cvRect(n,m,image_patch.width, image_patch.height));
 				cvCopy(image,imagetemp);
 				cvResetImageROI(image);
@@ -180,6 +185,10 @@ int level_main(int clan,string *curpath){
 		string imageRept=imagefile.substr(0,imagefile.length()-4);
 		ofstream foutimageRept(imageRept+".txt");
 		ifstream finpatchname(patchnameFile);
+        // loop over each patch representing a cluster center (kernel), get its HOG,
+        // and calculate one new image result, as the convolution of the current image with that cluster-patch
+        // i.e. multiply the VM of the current image (which stores hog of each patch in the image) with
+        // the kernel-patch-hog and sum them on each pixel
 		for(int j=0;j<patchnum;j++){
 
 			string patchname;
@@ -209,6 +218,7 @@ int level_main(int clan,string *curpath){
 				}
 			}
 
+            // do some max pooling and keep 5 values per kernel-patch per image
 			float pool[5]={0};
 			int countpools=0;
 			
