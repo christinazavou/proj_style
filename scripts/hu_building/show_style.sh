@@ -1,1 +1,0 @@
-start "" "..\..\Back_projected\back_projection.exe" "..\..\Back_projected\params_hu_building.cfg"

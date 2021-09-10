@@ -3,11 +3,9 @@
 #include "CommonZ.h"
 #include "model.h"
 #include "readbmp.h"
-#include "windows.h"
-#include "direct.h"
-#include "time.h"
-#include "stdio.h"
 #include <iostream>
+#include <cstring>
+#include <cmath>
 
 using namespace std;
 GLint window_size = 200;
@@ -42,7 +40,7 @@ void setseed_and_style(string filename)
 	file = fopen(filename.data(), "r");
 	if (!file)
 	{
-		fprintf(stderr, "setseed failed: can't open file \"%s\".\n", filename);
+		fprintf(stderr, "setseed failed: can't open file \"%s\".\n", filename.c_str());
 		system("PAUSE");
 		exit(1);
 	}
@@ -123,16 +121,16 @@ void isincube()
 	}
 }
 
-BOOL WriteBitmapFile(const char * filename, int width, int height, unsigned char * bitmapData)
+bool WriteBitmapFile(const char * filename, int width, int height, unsigned char * bitmapData)
 {
-	//Ìî³äBITMAPFILEHEADER
+	//ï¿½ï¿½ï¿½BITMAPFILEHEADER
 	BITMAPFILEHEADER bitmapFileHeader;
 	memset(&bitmapFileHeader, 0, sizeof(BITMAPFILEHEADER));
 	bitmapFileHeader.bfSize = sizeof(BITMAPFILEHEADER);
-	bitmapFileHeader.bfType = 0x4d42;	//BM
+	WORD bfType = 0x4d42;	//BM
 	bitmapFileHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
-	//Ìî³äBITMAPINFOHEADER
+	//ï¿½ï¿½ï¿½BITMAPINFOHEADER
 	BITMAPINFOHEADER bitmapInfoHeader;
 	memset(&bitmapInfoHeader, 0, sizeof(BITMAPINFOHEADER));
 	bitmapInfoHeader.biSize = sizeof(BITMAPINFOHEADER);
@@ -140,15 +138,15 @@ BOOL WriteBitmapFile(const char * filename, int width, int height, unsigned char
 	bitmapInfoHeader.biHeight = height;
 	bitmapInfoHeader.biPlanes = 1;
 	bitmapInfoHeader.biBitCount = 24;
-	bitmapInfoHeader.biCompression = BI_RGB;
+	bitmapInfoHeader.biCompression = 0x0;
 	bitmapInfoHeader.biSizeImage = width * abs(height) * 3;
 
 	//////////////////////////////////////////////////////////////////////////
-	FILE * filePtr;			//Á¬½ÓÒª±£´æµÄbitmapÎÄ¼þÓÃ
-	unsigned char tempRGB;	//ÁÙÊ±É«ËØ
+	FILE * filePtr;			//ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½bitmapï¿½Ä¼ï¿½ï¿½ï¿½
+	unsigned char tempRGB;	//ï¿½ï¿½Ê±É«ï¿½ï¿½
 	int imageIdx;
 
-	//½»»»R¡¢BµÄÏñËØÎ»ÖÃ,bitmapµÄÎÄ¼þ·ÅÖÃµÄÊÇBGR,ÄÚ´æµÄÊÇRGB
+	//ï¿½ï¿½ï¿½ï¿½Rï¿½ï¿½Bï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½,bitmapï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ãµï¿½ï¿½ï¿½BGR,ï¿½Ú´ï¿½ï¿½ï¿½ï¿½RGB
 	for (imageIdx = 0; imageIdx < bitmapInfoHeader.biSizeImage; imageIdx += 3)
 	{
 		tempRGB = bitmapData[imageIdx];
@@ -159,9 +157,10 @@ BOOL WriteBitmapFile(const char * filename, int width, int height, unsigned char
 	filePtr = fopen(filename, "wb");
 	if (NULL == filePtr)
 	{
-		return FALSE;
+		return false;
 	}
 
+	fwrite(&bfType, sizeof(bfType), 1, filePtr);
 	fwrite(&bitmapFileHeader, sizeof(BITMAPFILEHEADER), 1, filePtr);
 
 	fwrite(&bitmapInfoHeader, sizeof(BITMAPINFOHEADER), 1, filePtr);
@@ -169,7 +168,7 @@ BOOL WriteBitmapFile(const char * filename, int width, int height, unsigned char
 	fwrite(bitmapData, bitmapInfoHeader.biSizeImage, 1, filePtr);
 
 	fclose(filePtr);
-	return TRUE;
+	return true;
 }
 
 void saveScreenShot(int clnHeight, int clnWidth, GLfloat angle)

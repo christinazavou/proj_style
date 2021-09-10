@@ -1,358 +1,359 @@
 #include "readbmp.h"
-#include "math.h"  
-#include "stdio.h"
-#include "stdlib.h"   
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
 #include "malloc.h"
 #include <fstream>
 #include <iostream>
+#include <cstring>
+
 using namespace std;
 
 Patch* getpatch(unsigned char *bitmapData, int width, int height)
 {
-	int ybottom = height;
-	int ytop = 0;
-	int xleft = width;
-	int xright = 0;
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			int index = (i*width + j) * 3;
-			if (bitmapData[index] < 255)
-			{
-				if (i < ybottom)
-					ybottom = i;
-				if (i > ytop)
-					ytop = i;
-				if (j < xleft)
-					xleft = j;
-				if (j > xright)
-					xright = j;
-			}
-		}
-	}
-	int rybottom = height;
-	int rytop = 0;
-	int rxleft = width;
-	int rxright = 0;
-	for (int i = 0; i < height; i++)
-	{
-		for (int j = 0; j < width; j++)
-		{
-			int index = (i*width + j) * 3;
-			if (bitmapData[index] == 0)
-			{
-				if (i < rybottom)
-					rybottom = i;
-				if (i > rytop)
-					rytop = i;
-				if (j < rxleft)
-					rxleft = j;
-				if (j > rxright)
-					rxright = j;
-			}
-		}
-	}
-	Patch *mypatch = new Patch;
-	if (rxright == 0)
-		mypatch->x1 = -1;
-	else
-	{
-		mypatch->x1 = (double)(rxleft - xleft + 1) / (double)(xright - xleft + 1);
-		mypatch->y1 = (double)(rybottom - ybottom + 1) / (double)(ytop - ybottom + 1);
-		mypatch->x2 = (double)(rxright - xleft + 1) / (double)(xright - xleft + 1);
-		mypatch->y2 = (double)(rytop - ybottom + 1) / (double)(ytop - ybottom + 1);
-	}
-	return mypatch;
+    int ybottom = height;
+    int ytop = 0;
+    int xleft = width;
+    int xright = 0;
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            int index = (i*width + j) * 3;
+            if (bitmapData[index] < 255)
+            {
+                if (i < ybottom)
+                    ybottom = i;
+                if (i > ytop)
+                    ytop = i;
+                if (j < xleft)
+                    xleft = j;
+                if (j > xright)
+                    xright = j;
+            }
+        }
+    }
+    int rybottom = height;
+    int rytop = 0;
+    int rxleft = width;
+    int rxright = 0;
+    for (int i = 0; i < height; i++)
+    {
+        for (int j = 0; j < width; j++)
+        {
+            int index = (i*width + j) * 3;
+            if (bitmapData[index] == 0)
+            {
+                if (i < rybottom)
+                    rybottom = i;
+                if (i > rytop)
+                    rytop = i;
+                if (j < rxleft)
+                    rxleft = j;
+                if (j > rxright)
+                    rxright = j;
+            }
+        }
+    }
+    Patch *mypatch = new Patch;
+    if (rxright == 0)
+        mypatch->x1 = -1;
+    else
+    {
+        mypatch->x1 = (double)(rxleft - xleft + 1) / (double)(xright - xleft + 1);
+        mypatch->y1 = (double)(rybottom - ybottom + 1) / (double)(ytop - ybottom + 1);
+        mypatch->x2 = (double)(rxright - xleft + 1) / (double)(xright - xleft + 1);
+        mypatch->y2 = (double)(rytop - ybottom + 1) / (double)(ytop - ybottom + 1);
+    }
+    return mypatch;
 }
 BmpImage* imcrop(BmpImage* image, int x, int y, int size)
 {
-	if (x<1 || y<1 || x + size >image->width || y + size> image->height)
-	{
-		cout << "imcrop error" << endl;
-		exit(0);
-	}
-	BmpImage* patch = new BmpImage;
-	patch->dataOfBmp = new myRGBQUAD[(size + 1)*(size + 1)];
-	for (int i = y; i <= y + size; i++)
-		for (int j = x; j <= x + size; j++)
-			patch->dataOfBmp[(i - y)*(size + 1) + j - x] = image->dataOfBmp[(i - 1)*image->width + j - 1];
-	patch->height = size + 1;
-	patch->width = size + 1;
-	patch->depth = 24;
-	return patch;
+    if (x<1 || y<1 || x + size >image->width || y + size> image->height)
+    {
+        cout << "imcrop error" << endl;
+        exit(0);
+    }
+    BmpImage* patch = new BmpImage;
+    patch->dataOfBmp = new myRGBQUAD[(size + 1)*(size + 1)];
+    for (int i = y; i <= y + size; i++)
+        for (int j = x; j <= x + size; j++)
+            patch->dataOfBmp[(i - y)*(size + 1) + j - x] = image->dataOfBmp[(i - 1)*image->width + j - 1];
+    patch->height = size + 1;
+    patch->width = size + 1;
+    patch->depth = 24;
+    return patch;
 }
 BmpImage* readbmp(string Filename)
 {
 
-	// ´ò¿ªÎÄ¼ş
-	myBITMAPFILEHEADER  bitHead;
-	myBITMAPINFOHEADER bitInfoHead;
-	FILE* pfile = fopen(Filename.data(), "rb");
-	if (pfile == 0)
-	{
-		cout << "cannot open the projection file "<<Filename << endl;
-		cin.get();
-		exit(2);
-	}
-	WORD fileType;
-	fread(&fileType, 1, sizeof(WORD), pfile);
-	if (fileType != 0x4d42)
-	{
-		cout << "Õâ²»ÊÇbmp¸ñÊ½µÄÎÄ¼ş!";
-		return 0;
-	}
+    // æ‰“å¼€æ–‡ä»¶
+    BITMAPFILEHEADER  bitHead;
+    BITMAPINFOHEADER bitInfoHead;
+    FILE* pfile = fopen(Filename.data(), "rb");
+    if (pfile == 0)
+    {
+        cout << "cannot open the projection file "<<Filename << endl;
+        cin.get();
+        exit(2);
+    }
+    WORD fileType;
+    fread(&fileType, 1, sizeof(WORD), pfile);
+    if (fileType != 0x4d42)
+    {
+        cout << "è¿™ä¸æ˜¯bmpæ ¼å¼çš„æ–‡ä»¶!";
+        return 0;
+    }
 
-	fread(&bitHead, sizeof(myBITMAPFILEHEADER), 1, pfile);
-	//showBmpHead(&bitHead);
-	//cout<<endl<<endl;
+    fread(&bitHead, sizeof(BITMAPFILEHEADER), 1, pfile);
+    //showBmpHead(&bitHead);
+    //cout<<endl<<endl;
 
-	//¶ÁÈ¡Î»Í¼ĞÅÏ¢Í·ĞÅÏ¢
-	fread(&bitInfoHead, sizeof(myBITMAPINFOHEADER), 1, pfile);
-	//showBmpInforHead(&bitInfoHead);
-	//cout<<endl;
+    //è¯»å–ä½å›¾ä¿¡æ¯å¤´ä¿¡æ¯
+    fread(&bitInfoHead, sizeof(BITMAPINFOHEADER), 1, pfile);
+    //showBmpInforHead(&bitInfoHead);
+    //cout<<endl;
 
-	tagRGBQUAD2 *pRgb = new tagRGBQUAD2[0];
-	long nPlantNum;
-	if (bitInfoHead.biBitCount < 24)//ÓĞµ÷É«°å
-	{
-		//¶ÁÈ¡µ÷É«ÅÌ½áĞÅÏ¢
-		nPlantNum = long(pow(2, double(bitInfoHead.biBitCount)));    //   Mix color Plant Number;
-		pRgb = new tagRGBQUAD2[nPlantNum*sizeof(tagRGBQUAD2)];
-		memset(pRgb, 0, nPlantNum*sizeof(tagRGBQUAD2));
-		fread(pRgb, 4, nPlantNum, pfile);
+    tagRGBQUAD2 *pRgb = new tagRGBQUAD2[0];
+    long nPlantNum;
+    if (bitInfoHead.biBitCount < 24)//æœ‰è°ƒè‰²æ¿
+    {
+        //è¯»å–è°ƒè‰²ç›˜ç»“ä¿¡æ¯
+        nPlantNum = long(pow(2, double(bitInfoHead.biBitCount)));    //   Mix color Plant Number;
+        pRgb = new tagRGBQUAD2[nPlantNum*sizeof(tagRGBQUAD2)];
+        memset(pRgb, 0, nPlantNum*sizeof(tagRGBQUAD2));
+        fread(pRgb, 4, nPlantNum, pfile);
 
-		/*cout<<"Color Plate Number: "<<nPlantNum<<endl;
+        /*cout<<"Color Plate Number: "<<nPlantNum<<endl;
+        cout<<"é¢œè‰²æ¿ä¿¡æ¯:"<<endl;
+        for (int i =0; i<nPlantNum;i++)
+        {
+        if (i%5==0)          {cout<<endl;}
+        showRgbQuan(&pRgb[i]);
+        }*/
 
-		cout<<"ÑÕÉ«°åĞÅÏ¢:"<<endl;
-		for (int i =0; i<nPlantNum;i++)
-		{
-		if (i%5==0)          {cout<<endl;}
-		showRgbQuan(&pRgb[i]);
-		}*/
+        //cout<<endl;
 
-		//cout<<endl;
+    }
+    BmpImage *image = new BmpImage;
+    int width = bitInfoHead.biWidth;
+    int height = bitInfoHead.biHeight;
+    image->width = width;
+    image->height = height;
+    //åˆ†é…å†…å­˜ç©ºé—´æŠŠæºå›¾å­˜å…¥å†…å­˜
+    int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);//è®¡ç®—ä½å›¾çš„å®é™…å®½åº¦å¹¶ç¡®ä¿å®ƒä¸º32çš„å€æ•°
+    BYTE    *pColorData = new BYTE[height*l_width];
+    memset(pColorData, 0, height*l_width);
+    long nData = height*l_width;
 
-	}
-	BmpImage *image = new BmpImage;
-	int width = bitInfoHead.biWidth;
-	int height = bitInfoHead.biHeight;
-	image->width = width;
-	image->height = height;
-	//·ÖÅäÄÚ´æ¿Õ¼ä°ÑÔ´Í¼´æÈëÄÚ´æ   
-	int l_width = WIDTHBYTES(width* bitInfoHead.biBitCount);//¼ÆËãÎ»Í¼µÄÊµ¼Ê¿í¶È²¢È·±£ËüÎª32µÄ±¶Êı
-	BYTE    *pColorData = new BYTE[height*l_width];
-	memset(pColorData, 0, height*l_width);
-	long nData = height*l_width;
+    //æŠŠä½å›¾æ•°æ®ä¿¡æ¯è¯»åˆ°æ•°ç»„é‡Œ
+    fread(pColorData, 1, nData, pfile);
 
-	//°ÑÎ»Í¼Êı¾İĞÅÏ¢¶Áµ½Êı×éÀï   
-	fread(pColorData, 1, nData, pfile);
+    //å°†ä½å›¾æ•°æ®è½¬åŒ–ä¸ºRGBæ•°æ®
+    mytagRGBQUAD* dataOfBmp;
+    dataOfBmp = new mytagRGBQUAD[width*height*sizeof(mytagRGBQUAD)];//ç”¨äºä¿å­˜å„åƒç´ å¯¹åº”çš„RGBæ•°æ®
+    memset(dataOfBmp, 0, width*height*sizeof(mytagRGBQUAD));
 
-	//½«Î»Í¼Êı¾İ×ª»¯ÎªRGBÊı¾İ
-	mytagRGBQUAD* dataOfBmp;
-	dataOfBmp = new mytagRGBQUAD[width*height*sizeof(mytagRGBQUAD)];//ÓÃÓÚ±£´æ¸÷ÏñËØ¶ÔÓ¦µÄRGBÊı¾İ
-	memset(dataOfBmp, 0, width*height*sizeof(mytagRGBQUAD));
+    if (bitInfoHead.biBitCount < 24)//æœ‰è°ƒè‰²æ¿ï¼Œå³ä½å›¾ä¸ºéçœŸå½©è‰²
+    {
+        int k;
+        int index = 0;
+        if (bitInfoHead.biBitCount == 1)
+        {
+            image->depth = 1;
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    BYTE mixIndex = 0;
+                    k = i*l_width + j / 8;//k:å–å¾—è¯¥åƒç´ é¢œè‰²æ•°æ®åœ¨å®é™…æ•°æ®æ•°ç»„ä¸­çš„åºå·
+                    //j:æå–å½“å‰åƒç´ çš„é¢œè‰²çš„å…·ä½“å€¼
+                    mixIndex = pColorData[k];
+                    switch (j % 8)
+                    {
+                        case 0:
+                            mixIndex = mixIndex;
+                            break;
+                        case 1:
+                            mixIndex = mixIndex >> 1;
+                            break;
+                        case 2:
+                            mixIndex = mixIndex >> 2;
+                            break;
+                        case 3:
+                            mixIndex = mixIndex >> 3;
+                            break;
+                        case 4:
+                            mixIndex = mixIndex >> 4;
+                            break;
+                        case 5:
+                            mixIndex = mixIndex >> 5;
+                            break;
+                        case 6:
+                            mixIndex = mixIndex >> 6;
+                            break;
+                        case 7:
+                            mixIndex = mixIndex >> 7;
+                            break;
+                    }
 
-	if (bitInfoHead.biBitCount < 24)//ÓĞµ÷É«°å£¬¼´Î»Í¼Îª·ÇÕæ²ÊÉ« 
-	{
-		int k;
-		int index = 0;
-		if (bitInfoHead.biBitCount == 1)
-		{
-			image->depth = 1;
-			for (int i = 0; i < height; i++)
-				for (int j = 0; j < width; j++)
-				{
-					BYTE mixIndex = 0;
-					k = i*l_width + j / 8;//k:È¡µÃ¸ÃÏñËØÑÕÉ«Êı¾İÔÚÊµ¼ÊÊı¾İÊı×éÖĞµÄĞòºÅ
-					//j:ÌáÈ¡µ±Ç°ÏñËØµÄÑÕÉ«µÄ¾ßÌåÖµ    
-					mixIndex = pColorData[k];
-					switch (j % 8)
-					{
-					case 0:
-						mixIndex = mixIndex;
-						break;
-					case 1:
-						mixIndex = mixIndex >> 1;
-						break;
-					case 2:
-						mixIndex = mixIndex >> 2;
-						break;
-					case 3:
-						mixIndex = mixIndex >> 3;
-						break;
-					case 4:
-						mixIndex = mixIndex >> 4;
-						break;
-					case 5:
-						mixIndex = mixIndex >> 5;
-						break;
-					case 6:
-						mixIndex = mixIndex >> 6;
-						break;
-					case 7:
-						mixIndex = mixIndex >> 7;
-						break;
-					}
+                    //å°†åƒç´ æ•°æ®ä¿å­˜åˆ°æ•°ç»„ä¸­å¯¹åº”çš„ä½ç½®
+                    dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
+                    dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
+                    dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
+                    //dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
+                    index++;
+                }
+        }
 
-					//½«ÏñËØÊı¾İ±£´æµ½Êı×éÖĞ¶ÔÓ¦µÄÎ»ÖÃ
-					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
-					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
-					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
-					//dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
-					index++;
-				}
-		}
+        if (bitInfoHead.biBitCount == 2)
+        {
+            image->depth = 2;
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    BYTE mixIndex = 0;
+                    k = i*l_width + j / 4;//k:å–å¾—è¯¥åƒç´ é¢œè‰²æ•°æ®åœ¨å®é™…æ•°æ®æ•°ç»„ä¸­çš„åºå·
+                    //j:æå–å½“å‰åƒç´ çš„é¢œè‰²çš„å…·ä½“å€¼
+                    mixIndex = pColorData[k];
+                    switch (j % 4)
+                    {
+                        case 0:
+                            mixIndex = mixIndex;
+                            break;
+                        case 1:
+                            mixIndex = mixIndex >> 2;
+                            break;
+                        case 2:
+                            mixIndex = mixIndex >> 4;
+                            break;
+                        case 3:
+                            mixIndex = mixIndex >> 6;
+                            break;
+                    }
 
-		if (bitInfoHead.biBitCount == 2)
-		{
-			image->depth = 2;
-			for (int i = 0; i < height; i++)
-				for (int j = 0; j < width; j++)
-				{
-					BYTE mixIndex = 0;
-					k = i*l_width + j / 4;//k:È¡µÃ¸ÃÏñËØÑÕÉ«Êı¾İÔÚÊµ¼ÊÊı¾İÊı×éÖĞµÄĞòºÅ
-					//j:ÌáÈ¡µ±Ç°ÏñËØµÄÑÕÉ«µÄ¾ßÌåÖµ    
-					mixIndex = pColorData[k];
-					switch (j % 4)
-					{
-					case 0:
-						mixIndex = mixIndex;
-						break;
-					case 1:
-						mixIndex = mixIndex >> 2;
-						break;
-					case 2:
-						mixIndex = mixIndex >> 4;
-						break;
-					case 3:
-						mixIndex = mixIndex >> 6;
-						break;
-					}
+                    //å°†åƒç´ æ•°æ®ä¿å­˜åˆ°æ•°ç»„ä¸­å¯¹åº”çš„ä½ç½®
+                    dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
+                    dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
+                    dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
+                    //dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
+                    index++;
+                }
+        }
+        if (bitInfoHead.biBitCount == 4)
+        {
+            image->depth = 4;
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    BYTE mixIndex = 0;
+                    k = i*l_width + j / 2;
+                    mixIndex = pColorData[k];
+                    if (j % 2 == 0)
+                    {//ä½
+                        mixIndex = mixIndex;
+                    }
+                    else
+                    {//é«˜
+                        mixIndex = mixIndex >> 4;
+                    }
 
-					//½«ÏñËØÊı¾İ±£´æµ½Êı×éÖĞ¶ÔÓ¦µÄÎ»ÖÃ
-					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
-					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
-					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
-					//dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
-					index++;
-				}
-		}
-		if (bitInfoHead.biBitCount == 4)
-		{
-			image->depth = 4;
-			for (int i = 0; i < height; i++)
-				for (int j = 0; j < width; j++)
-				{
-					BYTE mixIndex = 0;
-					k = i*l_width + j / 2;
-					mixIndex = pColorData[k];
-					if (j % 2 == 0)
-					{//µÍ      
-						mixIndex = mixIndex;
-					}
-					else
-					{//¸ß
-						mixIndex = mixIndex >> 4;
-					}
+                    dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
+                    dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
+                    dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
+                    //dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
+                    index++;
+                }
+        }
+        if (bitInfoHead.biBitCount == 8)
+        {
+            image->depth = 8;
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    BYTE mixIndex = 0;
+                    k = i*l_width + j;
+                    mixIndex = pColorData[k];
 
-					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
-					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
-					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
-					//dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
-					index++;
-				}
-		}
-		if (bitInfoHead.biBitCount == 8)
-		{
-			image->depth = 8;
-			for (int i = 0; i < height; i++)
-				for (int j = 0; j < width; j++)
-				{
-					BYTE mixIndex = 0;
-					k = i*l_width + j;
-					mixIndex = pColorData[k];
+                    dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
+                    dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
+                    dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
+                    //dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
+                    index++;
+                }
+        }
+        if (bitInfoHead.biBitCount == 16)
+        {
+            image->depth = 16;
+            for (int i = 0; i < height; i++)
+                for (int j = 0; j < width; j++)
+                {
+                    WORD mixIndex = 0;
+                    k = i*l_width + j * 2;
+                    WORD shortTemp;
+                    shortTemp = pColorData[k + 1];
+                    shortTemp = shortTemp << 8;
 
-					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
-					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
-					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
-					//dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
-					index++;
-				}
-		}
-		if (bitInfoHead.biBitCount == 16)
-		{
-			image->depth = 16;
-			for (int i = 0; i < height; i++)
-				for (int j = 0; j < width; j++)
-				{
-					WORD mixIndex = 0;
-					k = i*l_width + j * 2;
-					WORD shortTemp;
-					shortTemp = pColorData[k + 1];
-					shortTemp = shortTemp << 8;
+                    mixIndex = pColorData[k] + shortTemp;
 
-					mixIndex = pColorData[k] + shortTemp;
+                    dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
+                    dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
+                    dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
+                    //dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
+                    index++;
 
-					dataOfBmp[index].rgbRed = pRgb[mixIndex].rgbRed;
-					dataOfBmp[index].rgbGreen = pRgb[mixIndex].rgbGreen;
-					dataOfBmp[index].rgbBlue = pRgb[mixIndex].rgbBlue;
-					//dataOfBmp[index].rgbReserved = pRgb[mixIndex].rgbReserved;
-					index++;
-
-				}
-		}
-	}
-	else//Î»Í¼Îª24Î»Õæ²ÊÉ«
-	{
-		image->depth = 24;
-		int k;
-		int index = 0;
-		for (int i = 0; i < height; i++)
-			for (int j = 0; j < width; j++)
-			{
-				k = i*l_width + j * 3;
-				dataOfBmp[index].rgbRed = pColorData[k + 2];
-				dataOfBmp[index].rgbGreen = pColorData[k + 1];
-				dataOfBmp[index].rgbBlue = pColorData[k];
-				index++;
-			}
-	}
-	//    cout<<"ÏñËØÊı¾İĞÅÏ¢:"<<endl;
-	//	for (int i=0; i<width*height; i++)
-	//{
-	//	if (dataOfBmp[i].rgbRed != 255)
-	//	{
-	//      showRgbQuan(&dataOfBmp[i]);
-	//	  cout<<","<<i/width+1<<","<<i%width+1<<endl;
-	//	}
-	//}
-	//showRgbQuan(&dataOfBmp[139*width+13]);
-	//for (int i=0; i<width*height; i++)
-	//{
-	//   if (i%5==0)      cout<<endl;
-	//   if (i%width==0)     cout<<"*";
-	//   showRgbQuan(&dataOfBmp[i]);
-	//}
-	// ³õÊ¼»¯GLUT²¢ÔËĞĞ
-	//glutInit(&argc, argv);
-	//glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
-	//glutInitWindowPosition(100, 100);
-	//glutInitWindowSize(width, height);
-	//glutCreateWindow("opengl");
-	//glutDisplayFunc(&display);
-	//glutMainLoop();
-	// ÊÍ·ÅÄÚ´æ
-	// Êµ¼ÊÉÏ£¬glutMainLoopº¯ÊıÓÀÔ¶²»»á·µ»Ø£¬ÕâÀïÒ²ÓÀÔ¶²»»áµ½´ï
-	// ÕâÀïĞ´ÊÍ·ÅÄÚ´æÖ»ÊÇ³öÓÚÒ»ÖÖ¸öÈËÏ°¹ß
-	// ²»ÓÃµ£ĞÄÄÚ´æÎŞ·¨ÊÍ·Å¡£ÔÚ³ÌĞò½áÊøÊ±²Ù×÷ÏµÍ³»á×Ô¶¯»ØÊÕËùÓĞÄÚ´æ
-	fclose(pfile);
-	image->dataOfBmp = dataOfBmp;
-	if (bitInfoHead.biBitCount < 24)
-	{
-		delete[] pRgb;
-	}
-	//delete [] dataOfBmp;
-	delete[] pColorData;
-	return image;
+                }
+        }
+    }
+    else//ä½å›¾ä¸º24ä½çœŸå½©è‰²
+    {
+        image->depth = 24;
+        int k;
+        int index = 0;
+        for (int i = 0; i < height; i++)
+            for (int j = 0; j < width; j++)
+            {
+                k = i*l_width + j * 3;
+                dataOfBmp[index].rgbRed = pColorData[k + 2];
+                dataOfBmp[index].rgbGreen = pColorData[k + 1];
+                dataOfBmp[index].rgbBlue = pColorData[k];
+                index++;
+            }
+    }
+    //    cout<<"åƒç´ æ•°æ®ä¿¡æ¯:"<<endl;
+    //	for (int i=0; i<width*height; i++)
+    //{
+    //	if (dataOfBmp[i].rgbRed != 255)
+    //	{
+    //      showRgbQuan(&dataOfBmp[i]);
+    //	  cout<<","<<i/width+1<<","<<i%width+1<<endl;
+    //	}
+    //}
+    //showRgbQuan(&dataOfBmp[139*width+13]);
+    //for (int i=0; i<width*height; i++)
+    //{
+    //   if (i%5==0)      cout<<endl;
+    //   if (i%width==0)     cout<<"*";
+    //   showRgbQuan(&dataOfBmp[i]);
+    //}
+    // åˆå§‹åŒ–GLUTå¹¶è¿è¡Œ
+    //glutInit(&argc, argv);
+    //glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
+    //glutInitWindowPosition(100, 100);
+    //glutInitWindowSize(width, height);
+    //glutCreateWindow("opengl");
+    //glutDisplayFunc(&display);
+    //glutMainLoop();
+    // é‡Šæ”¾å†…å­˜
+    // å®é™…ä¸Šï¼ŒglutMainLoopå‡½æ•°æ°¸è¿œä¸ä¼šè¿”å›ï¼Œè¿™é‡Œä¹Ÿæ°¸è¿œä¸ä¼šåˆ°è¾¾
+    // è¿™é‡Œå†™é‡Šæ”¾å†…å­˜åªæ˜¯å‡ºäºä¸€ç§ä¸ªäººä¹ æƒ¯
+    // ä¸ç”¨æ‹…å¿ƒå†…å­˜æ— æ³•é‡Šæ”¾ã€‚åœ¨ç¨‹åºç»“æŸæ—¶æ“ä½œç³»ç»Ÿä¼šè‡ªåŠ¨å›æ”¶æ‰€æœ‰å†…å­˜
+    fclose(pfile);
+    image->dataOfBmp = dataOfBmp;
+    if (bitInfoHead.biBitCount < 24)
+    {
+        delete[] pRgb;
+    }
+    //delete [] dataOfBmp;
+    delete[] pColorData;
+    return image;
 }

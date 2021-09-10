@@ -47,14 +47,35 @@ step2:
 # 		i.e. stores a HOG for each possible patch (centered around each pixel, without padding)
 #		then it basically uses max pooling to output 5 values per patch-kernel for each image, and outputs this
 # 		(250 dim) representation in the .txt file
-# 		takes ~ 8 hours to process one view for 329 (building) models
+# 		takes ~ 8 hours to process all views for 329 (building) models
+#		      ~ 50 min                           30 (demo) models
 step3:
 	chmod 777 $(ConvolutionalExe) \
     		&& chmod 777 $(ThisDir)/data/$(Data)/* \
     		&& $(ConvolutionalExe) "$(ThisDir)/convolutional/configs/$(Data).yml"
 
-
+#	runs "add_data_to_matrix"
+#		creates pslf folder and stores the matrix VM (5*num_clusters, num_models) calculated in step3 into file input.mat
+#	runs "make_label_split_data"
+#		uses pectlabels
+#		in case pectlables is 0.5 it will get half the data per each label
+#		Y will be a one-hot-encoded matrix of e.g. half the models
+#		G will be a matrix of all the models and their label
+#	runs "run_kernel_filter" which calls the "pslf"
+#		calculates in each iteration (default 10)
+#			i.e. with 329 models, 12 views, 50 clusters, 4 labels:
+#			Vr (490x329], U (12 x 250x50), Uless (12 x 250x50), V (12 x 50x239), Vless (12 x 50x239), W (490x4)
+#			newY=W'*Vr (4x239) --> get labelc (329x1)
+#			calculates purity of clustering
+#			calculates ModelCla (??)
+#			calculates newX (for each view we have arbitrary amount of features per model)
+#
+# 			(and so in the next iteration U has arbitrary amount of features x 50 per view)
+# 	runs the "style_localization"
+#		for each view: we get
 step4:
 	cd $(ThisDir) \
 		&& matlab -nodesktop -nosplash -r "Complete_run('$(Data)',0);exit"
 
+
+step5:

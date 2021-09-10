@@ -1,7 +1,7 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
-#include "stdlib.h"
+#include <cstdlib>
 #include <vector>
 #include <string>
 #include <sstream>

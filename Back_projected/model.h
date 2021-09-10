@@ -2,7 +2,7 @@
 #define _MODEL_H
 
 
-#include <gl\glut.h>
+#include <GL/glut.h>
 //#include "CommonZ.h"
 #include <string>
 
