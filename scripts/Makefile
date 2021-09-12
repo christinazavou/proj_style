@@ -4,6 +4,7 @@ ThisDir ?= /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style
 SampleAndHogExe ?= $(ThisDir)/sample_and_hog/cmake-build-debug/SampleAndHog
 ConvolutionalExe ?= $(ThisDir)/convolutional/cmake-build-debug/Convolutional
 BackProjectExe ?= $(ThisDir)/Back_projected/cmake-build-debug/BackProjected
+LineDrawExe ?= $(ThisDir)/line_drawings/cmake-build-debug/LineDrawApp
 
 #build:
 #	build sample_and_hog
@@ -87,3 +88,20 @@ step5:
 	chmod 777 $(BackProjectExe) \
     		&& chmod 777 $(ThisDir)/data/$(Data)/* \
     		&& $(BackProjectExe) "$(ThisDir)/Back_projected/configs/$(Data).yml"
+
+
+preprocess_linedraw:
+	#chmod 777 $(LineDrawExe) \
+#    		&& chmod 777 $(ThisDir)/data/$(Data)/* \
+#    		&& $(LineDrawExe) "$(ThisDir)/line_drawings/$(Data).yml"
+	python run_line_drawings.py \
+		--in_dir /media/graphicslab/BigData/zavou/ANNFASS_CODE/decorgan-logs/preprocessed_data/groups_june17_uni_nor_components \
+		--ppm_dir /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/ppm \
+		--models_dir /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/models \
+		--3dlines_dir /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/3dlines \
+		--out_txt /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/model_names.txt \
+		--exe /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/line_drawings/cmake-build-debug/LinedrawApp  # takes ~5 hours
+	python get_model_styles.py \
+		--buildings_csv /media/graphicslab/BigData/zavou/ANNFASS_DATA/Combined_Buildings/buildings_with_style.csv \
+		--in_txt /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/model_names.txt \
+		--out_txt /media/graphicslab/BigData/zavou/ANNFASS_CODE/proj_style/data/building_component/class.txt

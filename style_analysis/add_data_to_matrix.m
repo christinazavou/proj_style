@@ -8,11 +8,16 @@ function []=add_data_to_matrix(lines_Path,kernel_Path,txt_Path,views,models,pslf
     X=cell(1,views);
     kk=0;
     for v=1:views
+        % the names of images in this view
         allname=importdata(fullfile(txt_Path, sprintf('picname%d.txt',v)));
+        % the names of patches representing clusters
         apidf=importdata(fullfile(kernel_Path,num2str(v),'Apidfpatchname.txt'));
+        % each model is represented by 5*(num_clusters) values in one view
+        % and these were created in "convolutional" step and are saved into
+        % files. We read those files (A) and store them in V1
         rows=5*length(apidf);
         V1=zeros(rows,models);
-        for i=1:size(V1,2);
+        for i=1:size(V1,2)
             name=allname{i};
             fileID = fopen(fullfile(lines_Path,name),'r');
             formatSpec = '%f';
@@ -21,6 +26,7 @@ function []=add_data_to_matrix(lines_Path,kernel_Path,txt_Path,views,models,pslf
             V1(:,i)=A;
         end
        kk=kk+1;
+       % save the matrices of all views into X
        X{kk}=V1;
        fprintf('%d\n', v);
     end

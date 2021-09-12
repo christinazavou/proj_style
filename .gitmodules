@@ -1,0 +1,3 @@
+[submodule "line_drawings"]
+	path = line_drawings
+	url = https://github.com/christinazavou/gpu_suggestive_contours.git

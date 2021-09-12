@@ -33,7 +33,7 @@ views=12;
 pcsize = 48;   %  to accomplish  the calculator of the images HOG .
 
 %% set the percent of the semi-supervised
-pectlbs=1;
+pectlbs=0.5;
 label_or_constraint=0;
 
 %% calculate number of shapes
